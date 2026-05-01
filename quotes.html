@@ -322,6 +322,17 @@ label.field-lbl{font-size:9px;color:var(--gold);letter-spacing:.8px;display:bloc
       <!-- Info del documento -->
       <div class="form-section">
         <div class="section-title">📄 INFORMACIÓN DEL DOCUMENTO</div>
+
+        <!-- Nombre interno — solo gestión, no aparece en PDF -->
+        <div style="margin-bottom:10px;">
+          <label class="field-lbl">
+            NOMBRE INTERNO
+            <span style="color:var(--border2);margin-left:4px;">— solo para tu gestión, no aparece en el PDF</span>
+          </label>
+          <input class="inp" id="f-quote-name" placeholder="Ej: Boda Mariela y Carlos · Junio 2026"
+            style="border-color:var(--orange);font-size:13px;">
+        </div>
+
         <div class="form-grid cols3">
           <div>
             <label class="field-lbl">NÚMERO</label>
@@ -878,6 +889,7 @@ function newQuote(){
   currentQuote = {
     id: Date.now(),
     num: 'EST'+String(quoteCounter).padStart(4,'0'),
+    internalName: '',
     type: 'PRESUPUESTO',
     date: today.toISOString().split('T')[0],
     validUntil: valid.toISOString().split('T')[0],
@@ -907,6 +919,7 @@ function loadQuoteIntoEditor(q){
   edItbis = q.itbis || false;
 
   document.getElementById('f-num').value = q.num||'';
+  document.getElementById('f-quote-name').value = q.internalName||'';
   document.getElementById('f-date').value = q.date||'';
   document.getElementById('f-valid').value = q.validUntil||'';
   document.getElementById('f-type').value = q.type||'PRESUPUESTO';
@@ -945,6 +958,7 @@ function saveQuote(){
     }
 
     currentQuote.num = document.getElementById('f-num').value || currentQuote.num;
+    currentQuote.internalName = document.getElementById('f-quote-name').value.trim();
     currentQuote.type = document.getElementById('f-type').value;
     currentQuote.date = document.getElementById('f-date').value;
     currentQuote.validUntil = document.getElementById('f-valid').value;
@@ -1638,6 +1652,7 @@ function renderList(){
     let va, vb;
     switch(listSort.col){
       case 'num':    va=a.num||''; vb=b.num||''; break;
+      case 'name':   va=a.internalName||''; vb=b.internalName||''; break;
       case 'client': va=a.client?.name||''; vb=b.client?.name||''; break;
       case 'status': va=a.status||''; vb=b.status||''; break;
       case 'date':   va=a.date||''; vb=b.date||''; break;
@@ -1662,9 +1677,9 @@ function renderList(){
 
   wrap.innerHTML=`<table class="quote-table">
     <thead><tr>
-      <th onclick="sortList('num')" style="${thStyle('num')}">NÚMERO ${arr('num')}</th>
+      <th onclick="sortList('num')" style="${thStyle('num')}">N° ${arr('num')}</th>
+      <th onclick="sortList('name')" style="${thStyle('name')}">NOMBRE INTERNO ${arr('name')}</th>
       <th onclick="sortList('client')" style="${thStyle('client')}">CLIENTE ${arr('client')}</th>
-      <th>TIPO</th>
       <th onclick="sortList('status')" style="${thStyle('status')}">ESTADO ${arr('status')}</th>
       <th onclick="sortList('date')" style="${thStyle('date')}">FECHA ${arr('date')}</th>
       <th onclick="sortList('total')" style="${thStyle('total')}">TOTAL ${arr('total')}</th>
@@ -1679,10 +1694,15 @@ function renderList(){
           ${q.notionPageId?`<div style="font-size:8px;color:var(--green);margin-top:1px">✓ Notion</div>`:''}
         </td>
         <td>
+          <div style="color:var(--white);font-size:11px;font-weight:500;font-family:'Bebas Neue';letter-spacing:.5px;">
+            ${q.internalName ? esc(q.internalName) : `<span style="color:var(--border2);font-family:'DM Mono';font-size:10px;font-weight:normal">sin nombre</span>`}
+          </div>
+          <div style="font-size:9px;color:var(--gold);margin-top:1px">${q.type||'PRESUPUESTO'}</div>
+        </td>
+        <td>
           <div class="qt-client">${esc(q.client?.name||'—')}</div>
           <div class="qt-date">${q.client?.service||''} ${q.client?.whatsapp?'· '+q.client.whatsapp:''}</div>
         </td>
-        <td><span style="font-size:9px;color:var(--gold)">${q.type||'PRESUPUESTO'}</span></td>
         <td><span class="status-badge ${statusClass(q.status)}">${statusLabel(q.status)}</span></td>
         <td><span class="qt-date">${q.date?formatDate(q.date):'—'}</span></td>
         <td><span class="qt-total">RD$${fmtNum(q.total||0)}</span></td>
@@ -2195,7 +2215,7 @@ async function syncToNotion(){
   const p=cfg.props||{};
   const props={};
   // Name = "EST0001 — ClienteName" en el título
-  if(p.name) props[p.name]={title:[{text:{content:currentQuote.num+' — '+(currentQuote.client?.name||'')}}]};
+  if(p.name) props[p.name]={title:[{text:{content:currentQuote.internalName || (currentQuote.num+' — '+(currentQuote.client?.name||''))}}]};
   // Estatus de pago — usa valores exactos de Notion
   if(p.status) props[p.status]={status:{name:statusToNotion(currentQuote.status)}};
   // Combo selecionado (total del combo, no incluir fórmulas de solo lectura)
