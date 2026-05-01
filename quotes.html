@@ -301,7 +301,9 @@ label.field-lbl{font-size:9px;color:var(--gold);letter-spacing:.8px;display:bloc
         </select>
       </div>
       <button class="btn btn-orange btn-sm" onclick="newQuote()">+ NUEVA COTIZACIÓN</button>
+      <button class="btn btn-sm" onclick="importQuotesFromNotion()" style="background:var(--card2);border:1px solid var(--blue);color:var(--blue)">↓ IMPORTAR TRABAJOS DE NOTION</button>
     </div>
+    <div id="import-quotes-result" style="display:none;font-size:10px;padding:6px 10px;border-radius:3px;margin-bottom:8px;"></div>
     <div id="quote-list-wrap">
       <div class="no-data">Aún no tienes cotizaciones.<br>Haz clic en <strong style="color:var(--orange)">+ NUEVA COTIZACIÓN</strong> para empezar.</div>
     </div>
@@ -565,7 +567,19 @@ Cuenta BHD: 31937430015</textarea>
         <button class="btn btn-orange" style="width:100%;margin-bottom:6px" onclick="switchTab('preview')">👁 VISTA PREVIA</button>
         <button class="btn btn-blue" style="width:100%;margin-bottom:6px" onclick="printQuote()">🖨 IMPRIMIR / PDF</button>
         <button class="btn btn-outline" style="width:100%;margin-bottom:6px" onclick="copyWhatsApp()">📱 COPIAR PARA WHATSAPP</button>
-        <button class="btn" id="notion-sync-btn" style="width:100%;background:var(--card2);border:1px solid var(--border2);color:var(--gold)" onclick="syncToNotion()">🔗 SYNC A NOTION</button>
+        <button class="btn" id="notion-sync-btn" style="width:100%;margin-bottom:10px;background:var(--card2);border:1px solid var(--border2);color:var(--gold)" onclick="syncToNotion()">🔗 SYNC A NOTION</button>
+
+        <!-- Enlazar a trabajo existente en Notion -->
+        <div style="background:var(--bg);border:1px solid var(--border2);border-radius:3px;padding:10px;">
+          <div style="font-size:9px;color:var(--gold);letter-spacing:1px;margin-bottom:6px;font-family:'Bebas Neue'">🔗 ENLAZAR A TRABAJO EXISTENTE</div>
+          <div style="font-size:9px;color:var(--gold);line-height:1.6;margin-bottom:6px;">
+            Si este trabajo <strong style="color:var(--cream)">ya existe en Notion</strong>, pega su URL o ID aquí para evitar duplicados.
+          </div>
+          <input class="inp inp-sm" id="f-notion-link" placeholder="URL o ID de la página en Notion"
+            style="margin-bottom:6px;font-size:9px;">
+          <button class="btn btn-outline btn-sm" style="width:100%;font-size:9px" onclick="linkToNotionPage()">✓ ENLAZAR</button>
+          <div id="notion-link-status" style="font-size:9px;margin-top:5px;display:none;"></div>
+        </div>
       </div>
 
     </div>
@@ -909,6 +923,9 @@ function loadQuoteIntoEditor(q){
   document.getElementById('f-pay-amount').value = '';
   document.getElementById('f-pay-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('f-pay-notes').value = '';
+  // Show notion link status
+  document.getElementById('f-notion-link').value = '';
+  updateNotionLinkStatus();
 
   const sw=document.getElementById('ed-itbis-sw');
   sw.className='sw-track'+(edItbis?' on':'');
@@ -2220,6 +2237,159 @@ function showToast(msg){
 // ══════════════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// ENLAZAR / IMPORTAR TRABAJOS DE NOTION
+// ══════════════════════════════════════════════════
+
+function updateNotionLinkStatus(){
+  const el=document.getElementById('notion-link-status');
+  if(!el) return;
+  if(currentQuote?.notionPageId){
+    el.style.cssText='display:block;color:var(--green);font-size:9px;';
+    el.innerHTML=`✓ Enlazado · <a href="https://notion.so/${currentQuote.notionPageId.replace(/-/g,'')}" target="_blank" style="color:var(--green)">ver en Notion ↗</a>`;
+  } else {
+    el.style.display='none';
+  }
+}
+
+function linkToNotionPage(){
+  if(!currentQuote){alert('Guarda la cotización primero.');return;}
+  const input=document.getElementById('f-notion-link').value.trim();
+  if(!input){alert('Pega el URL o ID de la página de Notion.');return;}
+
+  // Extraer el page ID del URL o del texto pegado
+  // Formatos: https://notion.so/workspace/Title-abc123 o UUID directo
+  let pageId = input;
+  const urlMatch = input.match(/([a-f0-9]{32})(?:[?#]|$)/i)
+    || input.match(/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i);
+
+  if(urlMatch){
+    pageId = urlMatch[1].replace(/-/g,'');
+    // Reformatear como UUID con guiones
+    pageId = [pageId.slice(0,8),pageId.slice(8,12),pageId.slice(12,16),pageId.slice(16,20),pageId.slice(20)].join('-');
+  } else {
+    alert('No pude identificar un ID válido de Notion. Copia el URL completo de la página.');
+    return;
+  }
+
+  currentQuote.notionPageId = pageId;
+  saveQuote();
+  updateNotionLinkStatus();
+
+  const statusEl=document.getElementById('notion-link-status');
+  statusEl.style.cssText='display:block;color:var(--green);';
+  statusEl.innerHTML=`✅ Enlazado correctamente · <a href="https://notion.so/${pageId.replace(/-/g,'')}" target="_blank" style="color:var(--green)">ver en Notion ↗</a>`;
+  document.getElementById('f-notion-link').value='';
+  showToast('✅ Cotización enlazada al trabajo de Notion');
+}
+
+async function importQuotesFromNotion(){
+  const cfg=JSON.parse(localStorage.getItem('wu_notion')||'{}');
+  const resultEl=document.getElementById('import-quotes-result');
+
+  if(!cfg.token||!cfg.dbQuotes){
+    resultEl.style.cssText='display:block;color:var(--danger)';
+    resultEl.textContent='⚠️ Configura el token y la DB de Trabajos en Notion Sync primero.';
+    return;
+  }
+
+  resultEl.style.cssText='display:block;color:var(--gold)';
+  resultEl.textContent='⏳ Importando trabajos desde Notion...';
+
+  try{
+    let allPages=[];let cursor=undefined;
+    do{
+      const body=cursor?{start_cursor:cursor}:{page_size:100};
+      const resp=await fetch(`https://notion-proxy-wallup.wallupmedia.workers.dev/notion/v1/databases/${cfg.dbQuotes}/query`,{
+        method:'POST',
+        headers:{'Authorization':'Bearer '+cfg.token,'Notion-Version':'2022-06-28','Content-Type':'application/json'},
+        body:JSON.stringify(body)
+      });
+      if(!resp.ok){const e=await resp.json();throw new Error(e.message||resp.status);}
+      const data=await resp.json();
+      allPages=[...allPages,...(data.results||[])];
+      cursor=data.has_more?data.next_cursor:undefined;
+    } while(cursor);
+
+    if(allPages.length===0){
+      resultEl.style.cssText='display:block;color:var(--gold)';
+      resultEl.textContent='ℹ️ No se encontraron trabajos en Notion.';
+      return;
+    }
+
+    const p=cfg.props||{};
+    let imported=0;let skipped=0;
+
+    allPages.forEach(page=>{
+      // Evitar duplicados por notionPageId
+      if(quotes.some(q=>q.notionPageId===page.id)){skipped++;return;}
+
+      const props=page.properties||{};
+
+      // Extraer nombre (título Name)
+      const nameData=props['Name']||props[p.name];
+      const fullName=(nameData?.title||[]).map(t=>t.plain_text).join('').trim();
+      if(!fullName){skipped++;return;}
+
+      // Separar número y nombre de cliente si el formato es "EST0001 — Cliente"
+      let num='', clientName='';
+      const dashMatch=fullName.match(/^(EST\d+)\s*[—\-]\s*(.+)$/i);
+      if(dashMatch){num=dashMatch[1];clientName=dashMatch[2].trim();}
+      else{clientName=fullName;}
+
+      // Extraer otros campos
+      const statusData=props['Estatus de pago']||props[p.status];
+      const notionStatus=statusData?.status?.name||statusData?.select?.name||'';
+      const statusMap={'Total pendiente':'pending','Pago parcial (abono)':'partial','Pago completo':'paid','Pago + extra':'paid'};
+      const status=statusMap[notionStatus]||'draft';
+
+      const dateData=props['Fecha']||props[p.date];
+      const date=dateData?.date?.start||'';
+
+      const totalData=props['Combo selecionado']||props[p.total];
+      const total=totalData?.number||0;
+
+      const tipoData=props['Tipo']||props[p.service];
+      const tipo=(tipoData?.multi_select||[]).map(t=>t.name).join(', ')||'';
+
+      const notasData=props['NOTAS'];
+      const notas=(notasData?.rich_text||[]).map(t=>t.plain_text).join('')||'';
+
+      // Pagado (rollup)
+      const pagadoData=props['Pagado'];
+      const received=pagadoData?.rollup?.number||0;
+
+      quotes.unshift({
+        id:'N-'+Date.now()+Math.random(),
+        num: num||'WUP-'+page.id.substring(0,6).toUpperCase(),
+        type:'PRESUPUESTO',
+        date, validUntil:'',
+        status,
+        client:{name:clientName,whatsapp:'',service:tipo,notes:''},
+        items:[],itbis:false,globalDisc:0,
+        policies:'',bank:'',internalNotes:notas,
+        payments:[],received,
+        total,subtotal:total,balance:total-received,
+        notionPageId:page.id,
+        createdAt:page.created_time||new Date().toISOString(),
+        updatedAt:page.last_edited_time||new Date().toISOString(),
+        importedFromNotion:true,
+      });
+      imported++;
+    });
+
+    localStorage.setItem('wu_quotes',JSON.stringify(quotes));
+    renderList();
+
+    resultEl.style.cssText='display:block;background:rgba(90,184,122,.1);border:1px solid var(--green);color:var(--green);padding:6px 10px;border-radius:3px;';
+    resultEl.textContent=`✅ ${imported} trabajo(s) importado(s) desde Notion${skipped>0?' · '+skipped+' ya existían o sin nombre':''}.`;
+
+  }catch(e){
+    resultEl.style.cssText='display:block;color:var(--danger)';
+    resultEl.textContent='❌ Error: '+e.message;
+  }
+}
+
 function catColor(cat){return{Particular:'#A08C6E',Recurrente:'#5ab87a',Referido:'#5a9be0',VIP:'#F59847',Empresa:'#e0c855'}[cat]||'#A08C6E';}
 function fmtNum(n){return Number(n||0).toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
