@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wall UP Media — Calculadora v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080808;
+  --card: #141414;
+  --card2: #1c1c1c;
+  --card3: #222222;
+  --orange: #F59847;
+  --orange-dim: rgba(245,152,71,0.12);
+  --cream: #F0E8DC;
+  --gold: #A08C6E;
+  --white: #FFFFFF;
+  --border: #2a2a2a;
+  --border2: #333333;
+  --danger: #e05555;
+  --green: #5ab87a;
+  --blue: #5a9be0;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--white);font-family:'DM Mono',monospace;font-size:12px;min-height:100vh;overflow-x:hidden;}
+
+/* ═══ HEADER ═══ */
+header{
+  background:var(--card);border-bottom:1px solid var(--border);
+  padding:10px 20px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.logo{font-family:'Bebas Neue';font-size:20px;letter-spacing:3px;}
+.logo span{color:var(--orange);}
+.header-right{display:flex;align-items:center;gap:10px;}
+.version{color:var(--gold);font-size:10px;letter-spacing:2px;}
+
+/* ═══ TABS ═══ */
+.tabs{display:flex;gap:2px;background:var(--bg);padding:8px 20px 0;border-bottom:1px solid var(--border);}
+.tab{font-family:'Bebas Neue';letter-spacing:2px;font-size:13px;padding:7px 18px;
+  background:var(--card);border:1px solid var(--border);border-bottom:none;
+  color:var(--gold);cursor:pointer;border-radius:4px 4px 0 0;transition:all .15s;}
+.tab.active{background:var(--card2);color:var(--orange);border-color:var(--orange);}
+.tab:hover:not(.active){color:var(--cream);}
+
+/* ═══ LAYOUT ═══ */
+.view{display:none;} .view.active{display:flex;}
+.view-full{display:none;} .view-full.active{display:block;}
+
+/* ═══ CATÁLOGO ═══ */
+.catalog-panel{
+  width:320px;min-width:320px;background:var(--card);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  height:calc(100vh - 85px);overflow:hidden;
+}
+.panel-header{padding:12px 14px 8px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.panel-title{font-family:'Bebas Neue';letter-spacing:2px;font-size:12px;color:var(--gold);margin-bottom:6px;}
+.search-box{width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--cream);padding:5px 8px;font-family:'DM Mono';font-size:11px;
+  border-radius:3px;outline:none;}
+.search-box:focus{border-color:var(--orange);}
+.search-box::placeholder{color:var(--gold);}
+
+.cat-scroll{flex:1;overflow-y:auto;padding:4px 0;}
+.cat-scroll::-webkit-scrollbar{width:3px;}
+.cat-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+.cat-group{margin-bottom:1px;}
+.cat-group-hd{
+  font-family:'Bebas Neue';letter-spacing:2px;font-size:10px;color:var(--orange);
+  padding:8px 14px 4px;border-top:1px solid var(--border);
+  cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+  user-select:none;transition:color .1s;
+}
+.cat-group-hd:hover{color:var(--cream);}
+.cat-arrow{transition:transform .2s;font-size:10px;}
+.cat-group.collapsed .cat-arrow{transform:rotate(-90deg);}
+.cat-group.collapsed .cat-items{display:none;}
+
+.cat-item{
+  display:grid;grid-template-columns:1fr auto auto;align-items:center;
+  gap:8px;padding:6px 14px 6px 18px;cursor:pointer;transition:background .1s;
+}
+.cat-item:hover{background:var(--card2);}
+.cat-item-name{color:var(--cream);font-size:10px;line-height:1.3;}
+.cat-item-sub{color:var(--gold);font-size:9px;}
+.cat-item-price{color:var(--orange);font-size:10px;text-align:right;white-space:nowrap;}
+.cat-item-unit{color:var(--gold);font-size:9px;text-align:right;}
+.add-btn{
+  width:20px;height:20px;background:var(--orange);color:var(--bg);
+  border:none;border-radius:50%;font-size:16px;line-height:1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-weight:bold;
+  transition:background .1s;flex-shrink:0;
+}
+.add-btn:hover{background:var(--cream);}
+
+/* ═══ BUILDER PANEL ═══ */
+.builder-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;height:calc(100vh - 85px);}
+
+.builder-header{
+  padding:10px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;
+}
+.builder-header h2{font-family:'Bebas Neue';letter-spacing:2px;font-size:15px;color:var(--white);}
+.combo-name{
+  background:var(--card2);border:1px solid var(--border);color:var(--cream);
+  padding:5px 10px;font-family:'Bebas Neue';font-size:14px;letter-spacing:1px;
+  border-radius:3px;outline:none;width:180px;
+}
+.combo-name:focus{border-color:var(--orange);}
+
+/* Módulos toggle */
+.module-toggles{display:flex;gap:4px;flex-wrap:wrap;align-items:center;}
+.module-toggle{
+  font-family:'DM Mono';font-size:9px;padding:3px 8px;
+  border:1px solid var(--border2);border-radius:2px;cursor:pointer;
+  background:var(--bg);color:var(--gold);transition:all .15s;letter-spacing:0.5px;
+  user-select:none;
+}
+.module-toggle.on{background:var(--orange-dim);border-color:var(--orange);color:var(--orange);}
+.module-toggle:hover{border-color:var(--cream);color:var(--cream);}
+.sep{color:var(--border2);font-size:10px;padding:0 2px;}
+
+/* ═══ TABLA DE ÍTEMS ═══ */
+.items-wrap{flex:1;overflow-y:auto;padding:0;}
+.items-wrap::-webkit-scrollbar{width:3px;}
+.items-wrap::-webkit-scrollbar-thumb{background:var(--border2);}
+
+.items-table{width:100%;border-collapse:collapse;}
+.items-table thead th{
+  background:var(--card2);padding:7px 10px;text-align:left;
+  font-family:'Bebas Neue';letter-spacing:2px;font-size:10px;color:var(--gold);
+  border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:5;
+}
+.items-table thead th.th-right{text-align:right;}
+.items-table tbody tr{border-bottom:1px solid var(--border);}
+.items-table tbody tr:hover{background:rgba(255,255,255,0.02);}
+
+.td-num{color:var(--orange);font-size:10px;padding:8px 6px 8px 12px;width:28px;vertical-align:top;padding-top:12px;}
+.td-name{padding:8px 6px;min-width:160px;vertical-align:top;}
+.item-name-text{color:var(--cream);font-size:11px;font-weight:500;}
+.item-code-text{color:var(--gold);font-size:9px;margin-top:1px;}
+.item-desc-text{color:var(--gold);font-size:9px;margin-top:3px;line-height:1.4;}
+
+.td-qty{padding:6px;width:90px;vertical-align:top;}
+.td-unit{padding:6px;width:110px;vertical-align:top;}
+.td-disc{padding:6px;width:70px;vertical-align:top;}
+.td-total{padding:8px 10px;width:110px;text-align:right;vertical-align:top;padding-top:12px;}
+.td-actions{padding:6px;width:30px;vertical-align:top;padding-top:10px;}
+
+.field-wrap{display:flex;flex-direction:column;gap:1px;}
+.field-label{font-size:8px;color:var(--gold);letter-spacing:.5px;}
+.field-input{
+  background:var(--bg);border:1px solid var(--border);color:var(--cream);
+  padding:4px 6px;font-family:'DM Mono';font-size:11px;border-radius:3px;
+  outline:none;width:100%;text-align:right;
+}
+.field-input:focus{border-color:var(--orange);}
+.field-input.unit-field{border-color:var(--border2);}
+.field-input.unit-field:focus{border-color:var(--gold);}
+
+.item-total{font-family:'DM Mono';font-size:13px;color:var(--orange);font-weight:500;}
+.item-total.zero{color:var(--gold);}
+
+.remove-btn{background:none;border:none;color:var(--border2);cursor:pointer;font-size:16px;transition:color .1s;padding:2px;}
+.remove-btn:hover{color:var(--danger);}
+
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:200px;color:var(--gold);gap:8px;text-align:center;
+}
+.empty-icon{font-size:36px;opacity:.3;}
+
+/* ═══ FOOTER / TOTALES ═══ */
+.builder-footer{border-top:1px solid var(--border);background:var(--card);flex-shrink:0;}
+
+.totals-bar{
+  display:flex;align-items:stretch;
+}
+.total-block{
+  flex:1;padding:12px 16px;border-right:1px solid var(--border);
+  display:flex;flex-direction:column;gap:3px;
+}
+.total-block:last-child{border-right:none;}
+.total-lbl{font-size:9px;color:var(--gold);letter-spacing:1px;text-transform:uppercase;}
+.total-val{font-family:'DM Mono';font-size:16px;font-weight:500;}
+.total-val.white{color:var(--white);}
+.total-val.orange{color:var(--orange);}
+.total-val.green{color:var(--green);}
+.total-val.red{color:var(--danger);}
+.total-val.gold{color:var(--gold);}
+
+.discount-tax-bar{
+  display:flex;align-items:center;gap:12px;padding:8px 16px;
+  border-top:1px solid var(--border);flex-wrap:wrap;
+}
+.dt-group{display:flex;align-items:center;gap:6px;}
+.dt-label{font-size:10px;color:var(--gold);}
+.dt-input{
+  background:var(--bg);border:1px solid var(--border);color:var(--cream);
+  padding:4px 8px;font-family:'DM Mono';font-size:11px;border-radius:3px;
+  outline:none;width:70px;text-align:right;
+}
+.dt-input:focus{border-color:var(--orange);}
+.toggle-sw{
+  display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;
+}
+.sw-track{
+  width:32px;height:16px;background:var(--border2);border-radius:8px;
+  position:relative;transition:background .2s;
+}
+.sw-track.on{background:var(--orange);}
+.sw-thumb{
+  width:12px;height:12px;background:var(--white);border-radius:50%;
+  position:absolute;top:2px;left:2px;transition:left .2s;
+}
+.sw-track.on .sw-thumb{left:18px;}
+.sw-label{font-size:10px;color:var(--gold);}
+.sw-track.on + .sw-label{color:var(--orange);}
+
+.action-bar{
+  display:flex;align-items:center;gap:8px;padding:8px 16px;
+  border-top:1px solid var(--border);
+}
+
+/* ═══ BUTTONS ═══ */
+.btn{
+  font-family:'Bebas Neue';letter-spacing:1.5px;font-size:12px;
+  padding:7px 16px;border:none;border-radius:3px;cursor:pointer;transition:all .15s;
+}
+.btn-orange{background:var(--orange);color:var(--bg);}
+.btn-orange:hover{background:var(--cream);}
+.btn-outline{background:transparent;border:1px solid var(--gold);color:var(--gold);}
+.btn-outline:hover{border-color:var(--cream);color:var(--cream);}
+.btn-danger{background:transparent;border:1px solid var(--danger);color:var(--danger);}
+.btn-danger:hover{background:var(--danger);color:var(--white);}
+.btn-green{background:var(--green);color:var(--bg);}
+.btn-green:hover{background:#7dd99a;}
+.btn-blue{background:var(--blue);color:var(--bg);}
+.btn-blue:hover{background:#7ab8f0;}
+.btn-sm{padding:5px 10px;font-size:10px;}
+.ml-auto{margin-left:auto;}
+
+/* ═══ METRICS PANEL ═══ */
+.metrics-panel{
+  width:220px;min-width:220px;background:var(--card);
+  border-left:1px solid var(--border);display:flex;flex-direction:column;
+  height:calc(100vh - 85px);overflow-y:auto;
+}
+.metrics-panel::-webkit-scrollbar{width:3px;}
+.metrics-panel::-webkit-scrollbar-thumb{background:var(--border2);}
+.metric-section{padding:12px;border-bottom:1px solid var(--border);}
+.metric-sec-title{font-family:'Bebas Neue';letter-spacing:2px;font-size:11px;color:var(--gold);margin-bottom:10px;}
+.metric-card{
+  background:var(--bg);border:1px solid var(--border);border-radius:3px;
+  padding:8px 10px;margin-bottom:6px;
+}
+.metric-card.highlight{border-color:var(--orange);}
+.metric-lbl{font-size:8px;color:var(--gold);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;}
+.metric-val{font-family:'DM Mono';font-size:16px;font-weight:500;}
+.metric-sub{font-size:9px;color:var(--gold);margin-top:2px;}
+.margin-bar-wrap{background:var(--border);height:5px;border-radius:3px;margin-top:5px;overflow:hidden;}
+.margin-bar{height:100%;border-radius:3px;transition:width .3s,background .3s;}
+
+.custom-price-input{
+  width:100%;background:var(--bg);border:1px solid var(--orange);
+  color:var(--orange);padding:6px 8px;font-family:'DM Mono';font-size:14px;
+  border-radius:3px;outline:none;text-align:right;margin-top:4px;
+}
+.custom-price-input:focus{border-color:var(--cream);}
+
+.mult-row{display:flex;align-items:center;gap:6px;margin-top:6px;}
+.mult-lbl{font-size:9px;color:var(--gold);}
+.mult-input{
+  width:50px;background:var(--bg);border:1px solid var(--border);
+  color:var(--cream);padding:4px 6px;font-family:'DM Mono';font-size:11px;
+  border-radius:3px;outline:none;text-align:center;
+}
+.mult-input:focus{border-color:var(--gold);}
+
+/* ═══ CATÁLOGO EDITOR ═══ */
+.catalog-editor{padding:20px;max-width:900px;margin:0 auto;}
+.editor-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.editor-header h2{font-family:'Bebas Neue';letter-spacing:3px;font-size:22px;}
+.editor-table{width:100%;border-collapse:collapse;font-size:11px;}
+.editor-table th{
+  background:var(--card2);padding:8px 10px;text-align:left;
+  font-family:'Bebas Neue';letter-spacing:2px;font-size:10px;color:var(--gold);
+  border-bottom:1px solid var(--border);
+}
+.editor-table td{padding:5px 6px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.editor-table tr:hover td{background:rgba(255,255,255,.02);}
+.ed-input{
+  background:var(--bg);border:1px solid var(--border);color:var(--cream);
+  padding:4px 7px;font-family:'DM Mono';font-size:11px;border-radius:2px;
+  outline:none;width:100%;
+}
+.ed-input:focus{border-color:var(--orange);}
+.ed-input.price{text-align:right;}
+.cat-badge{
+  font-size:8px;padding:2px 6px;background:var(--card2);
+  border:1px solid var(--border);border-radius:2px;color:var(--gold);
+  white-space:nowrap;
+}
+.cat-select{
+  background:var(--bg);border:1px solid var(--border);color:var(--cream);
+  padding:4px 6px;font-family:'DM Mono';font-size:11px;border-radius:2px;outline:none;
+}
+.cat-select:focus{border-color:var(--orange);}
+
+/* ═══ COMPARADOR ═══ */
+.compare-wrap{padding:20px;}
+.compare-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.compare-header h2{font-family:'Bebas Neue';letter-spacing:3px;font-size:22px;}
+.compare-table{width:100%;border-collapse:collapse;font-size:11px;}
+.compare-table th{
+  background:var(--card);padding:9px 12px;text-align:left;
+  font-family:'Bebas Neue';letter-spacing:2px;font-size:11px;color:var(--orange);
+  border-bottom:1px solid var(--border);white-space:nowrap;
+}
+.compare-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--cream);}
+.compare-table tr:hover td{background:var(--card);}
+.compare-table .best-row td{background:rgba(245,152,71,0.06);}
+.td-g{color:var(--green)!important;}
+.td-o{color:var(--orange)!important;}
+.td-r{color:var(--danger)!important;}
+.td-gold{color:var(--gold)!important;}
+.no-data{text-align:center;padding:60px 20px;color:var(--gold);font-size:11px;line-height:2.5;}
+
+/* ═══ FILE IMPORT ═══ */
+.import-zone{
+  border:2px dashed var(--border2);border-radius:6px;padding:30px;
+  text-align:center;color:var(--gold);cursor:pointer;transition:border-color .2s;
+  margin-bottom:12px;
+}
+.import-zone:hover,.import-zone.drag{border-color:var(--orange);color:var(--cream);}
+.import-zone input{display:none;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">WALL <span>UP</span> MEDIA</div>
+  <div class="header-right">
+    <span class="version">ADMIN · FASE 1 · CALCULADORA</span>
+    <button class="btn btn-outline btn-sm" onclick="exportCatalogXLSX()">↓ EXPORTAR CATÁLOGO</button>
+    <button class="btn btn-orange btn-sm" onclick="saveCombo()">💾 GUARDAR COMBO</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('builder')">🧮 CALCULADORA</div>
+  <div class="tab" onclick="switchTab('catalog')">📦 CATÁLOGO</div>
+  <div class="tab" onclick="switchTab('compare')">📊 COMPARADOR</div>
+</div>
+
+<!-- ═══ CALCULADORA ═══ -->
+<div class="view active" id="tab-builder" style="height:calc(100vh - 85px);">
+
+  <!-- CATÁLOGO SIDEBAR -->
+  <div class="catalog-panel">
+    <div class="panel-header">
+      <div class="panel-title">CATÁLOGO DE ARTÍCULOS</div>
+      <input class="search-box" type="text" placeholder="Buscar artículo..." oninput="filterCatalog(this.value)">
+    </div>
+    <div class="cat-scroll" id="cat-list"></div>
+  </div>
+
+  <!-- BUILDER -->
+  <div class="builder-panel">
+
+    <!-- Header del combo -->
+    <div class="builder-header">
+      <h2>COMBO</h2>
+      <input class="combo-name" id="combo-name" type="text" value="NUEVO COMBO" placeholder="NOMBRE DEL COMBO">
+      <span class="sep">|</span>
+      <span style="font-size:10px;color:var(--gold);">COLUMNAS:</span>
+      <div class="module-toggles">
+        <div class="module-toggle on" id="tog-code" onclick="toggleCol('code',this)">CÓDIGO</div>
+        <div class="module-toggle on" id="tog-desc" onclick="toggleCol('desc',this)">DESCRIPCIÓN</div>
+        <div class="module-toggle on" id="tog-qty" onclick="toggleCol('qty',this)">CANTIDAD</div>
+        <div class="module-toggle on" id="tog-unit" onclick="toggleCol('unit',this)">PRECIO UNIT.</div>
+        <div class="module-toggle" id="tog-disc" onclick="toggleCol('disc',this)">DESCUENTO</div>
+        <div class="module-toggle on" id="tog-total" onclick="toggleCol('total',this)">TOTAL</div>
+      </div>
+      <button class="btn btn-danger btn-sm ml-auto" onclick="clearCombo()">✕ LIMPIAR</button>
+    </div>
+
+    <!-- Tabla de ítems -->
+    <div class="items-wrap">
+      <table class="items-table" id="items-table">
+        <thead id="items-thead">
+          <tr>
+            <th style="width:28px;">#</th>
+            <th>PRODUCTO / SERVICIO</th>
+            <th class="th-right col-qty" style="width:90px;">CANT.</th>
+            <th class="th-right col-unit" style="width:120px;">PRECIO UNIT.</th>
+            <th class="th-right col-disc" style="width:75px;display:none;">DESC. %</th>
+            <th class="th-right col-total" style="width:115px;">TOTAL</th>
+            <th style="width:30px;"></th>
+          </tr>
+        </thead>
+        <tbody id="items-body">
+          <tr id="empty-row">
+            <td colspan="7">
+              <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <p style="font-size:11px;line-height:1.6;">Haz clic en <strong style="color:var(--orange)">+</strong> en el catálogo<br>para agregar artículos al combo.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Descuento / ITBIS -->
+    <div class="discount-tax-bar">
+      <div class="dt-group">
+        <span class="dt-label">DESC. GLOBAL %</span>
+        <input class="dt-input" id="global-disc" type="number" value="0" min="0" max="100" step="1" oninput="recalculate()">
+      </div>
+      <div class="dt-group">
+        <div class="toggle-sw" onclick="toggleItbis()">
+          <div class="sw-track" id="itbis-sw"><div class="sw-thumb"></div></div>
+          <span class="sw-label" id="itbis-label">ITBIS 18%</span>
+        </div>
+      </div>
+      <div class="dt-group" style="margin-left:auto;">
+        <span class="dt-label" style="font-size:11px;color:var(--gold);">SUBTOTAL</span>
+        <span class="dt-label" id="footer-subtotal" style="font-size:13px;color:var(--cream);margin-left:8px;">RD$0</span>
+      </div>
+      <div class="dt-group">
+        <span class="dt-label" style="font-size:11px;color:var(--gold);">ITBIS</span>
+        <span id="footer-itbis" style="font-size:12px;color:var(--gold);margin-left:6px;">RD$0</span>
+      </div>
+      <div class="dt-group" style="border-left:1px solid var(--border2);padding-left:14px;">
+        <span class="dt-label" style="font-size:10px;color:var(--gold);">TOTAL COMBO</span>
+        <span id="footer-total" style="font-size:16px;color:var(--cream);font-family:'DM Mono';margin-left:8px;font-weight:500;">RD$0</span>
+      </div>
+      <div class="dt-group" style="border-left:1px solid var(--border2);padding-left:14px;background:var(--orange-dim);border-radius:4px;padding:8px 14px;">
+        <span class="dt-label" style="font-size:10px;color:var(--orange);font-family:'Bebas Neue';letter-spacing:1px;">PRECIO SUGERIDO</span>
+        <span id="footer-suggested" style="font-size:20px;color:var(--orange);font-family:'DM Mono';margin-left:8px;font-weight:500;text-shadow:0 0 12px rgba(245,152,71,0.4)">RD$0</span>
+        <div style="font-size:8px;color:var(--gold);margin-top:1px;" id="footer-suggested-hint">basado en costo × mult.</div>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn btn-outline btn-sm" onclick="addCustomItem()">+ ÍTEM MANUAL</button>
+      <button class="btn btn-blue btn-sm" onclick="copyResumen()">📋 COPIAR RESUMEN</button>
+      <button class="btn btn-green btn-sm ml-auto" onclick="saveCombo()">💾 GUARDAR COMBO</button>
+    </div>
+
+  </div>
+
+  <!-- MÉTRICAS -->
+  <div class="metrics-panel">
+    <div class="metric-section">
+      <div class="metric-sec-title">▶ ANÁLISIS</div>
+      <div class="metric-card">
+        <div class="metric-lbl">ÍTEMS EN COMBO</div>
+        <div class="metric-val white" id="m-count">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-lbl">SUBTOTAL (sin desc.)</div>
+        <div class="metric-val gold" id="m-subtotal">RD$0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-lbl">TOTAL CON DESC./ITBIS</div>
+        <div class="metric-val orange" id="m-total">RD$0</div>
+      </div>
+    </div>
+
+    <div class="metric-section">
+      <div class="metric-sec-title">▶ PRECIO VENTA</div>
+      <div class="metric-card highlight">
+        <div class="metric-lbl">PRECIO SUGERIDO</div>
+        <div class="metric-val orange" id="m-suggested" style="font-size:20px;">RD$0</div>
+        <div class="metric-sub" id="m-suggested-sub">total + 30% ganancia</div>
+      </div>
+      <div class="metric-card" style="border-color:var(--cream)">
+        <div class="metric-lbl">PRECIO REAL (editable)</div>
+        <input class="custom-price-input" id="custom-price" type="number" placeholder="Auto: precio sugerido" oninput="recalculate()" step="500">
+        <div class="metric-sub" id="m-price-hint" style="margin-top:4px;">↑ Edita si quieres un precio distinto</div>
+      </div>
+    </div>
+
+    <div class="metric-section">
+      <div class="metric-sec-title">▶ MARGEN OBJETIVO</div>
+      <div class="mult-row" style="margin-top:0;margin-bottom:8px;">
+        <span class="mult-lbl">GANANCIA OBJETIVO %</span>
+        <input class="mult-input" id="multiplier" type="number" value="30" min="0" max="200" step="5" oninput="recalculate()" style="width:60px">
+        <span style="font-size:9px;color:var(--gold)">%</span>
+      </div>
+      <div class="metric-card">
+        <div class="metric-lbl">COSTO DE MATERIALES</div>
+        <div class="metric-val gold" id="m-cost">RD$0</div>
+        <div class="metric-sub">suma de costos en catálogo</div>
+      </div>
+    </div>
+
+    <div class="metric-section">
+      <div class="metric-sec-title">▶ RENTABILIDAD</div>
+      <div class="metric-card">
+        <div class="metric-lbl">GANANCIA NETA</div>
+        <div class="metric-val green" id="m-profit">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-lbl">MARGEN %</div>
+        <div class="metric-val" id="m-margin">—</div>
+        <div class="margin-bar-wrap"><div class="margin-bar" id="margin-bar" style="width:0;background:var(--green)"></div></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-lbl">ROI SOBRE COSTO</div>
+        <div class="metric-val gold" id="m-roi">—</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ CATÁLOGO EDITOR ═══ -->
+<div class="view-full" id="tab-catalog">
+  <div class="catalog-editor">
+    <div class="editor-header">
+      <h2>CATÁLOGO DE ARTÍCULOS</h2>
+      <button class="btn btn-orange btn-sm" onclick="addNewProduct()">+ NUEVO ARTÍCULO</button>
+      <button class="btn btn-blue btn-sm" onclick="exportCatalogXLSX()">↓ EXPORTAR EXCEL</button>
+      <label class="btn btn-outline btn-sm" style="cursor:pointer;">
+        ↑ IMPORTAR EXCEL
+        <input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importCatalog(this)">
+      </label>
+      <button class="btn btn-outline btn-sm ml-auto" onclick="resetCatalog()">↺ RESTAURAR DEFECTO</button>
+    </div>
+
+    <div class="import-zone" id="import-zone" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+      <div>📂 Arrastra tu Excel aquí o haz clic para seleccionar</div>
+      <div style="font-size:9px;color:var(--gold);margin-top:4px;">Formato: Nombre | Categoría | Unidad | Precio Unitario | Costo | Descripción</div>
+      <input type="file" accept=".xlsx,.xls,.csv" onchange="importCatalog(this)">
+    </div>
+
+    <table class="editor-table" id="editor-table">
+      <thead>
+        <tr>
+          <th style="width:30px;">#</th>
+          <th>NOMBRE DEL ARTÍCULO</th>
+          <th style="width:140px;">CATEGORÍA</th>
+          <th style="width:80px;">UNIDAD</th>
+          <th style="width:110px;">PRECIO UNIT. RD$</th>
+          <th style="width:100px;">COSTO RD$</th>
+          <th>DESCRIPCIÓN CORTA</th>
+          <th style="width:30px;"></th>
+        </tr>
+      </thead>
+      <tbody id="editor-body"></tbody>
+    </table>
+
+    <div style="margin-top:10px;display:flex;gap:8px;">
+      <button class="btn btn-orange" onclick="saveCatalog()">💾 GUARDAR CATÁLOGO</button>
+      <span style="font-size:10px;color:var(--gold);align-self:center;" id="catalog-status"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ COMPARADOR ═══ -->
+<div class="view-full" id="tab-compare">
+  <div class="compare-wrap">
+    <div class="compare-header">
+      <div>
+        <h2>COMPARADOR DE COMBOS</h2>
+        <div style="font-size:10px;color:var(--gold);margin-top:2px;" id="compare-count">0 combos guardados</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-blue btn-sm" onclick="exportCompare()">📋 EXPORTAR</button>
+        <button class="btn btn-danger btn-sm" onclick="clearAllCombos()">🗑 BORRAR TODO</button>
+      </div>
+    </div>
+    <div id="compare-content">
+      <div class="no-data">Aún no tienes combos guardados.<br>Ve a <strong style="color:var(--orange)">CALCULADORA</strong>, arma un combo y presiona 💾 GUARDAR.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+// CATÁLOGO POR DEFECTO — Artículos unitarios Wall UP
+// ════════════════════════════════════════════════
+const DEFAULT_CATALOG = [
+  // SERVICIOS DE COBERTURA
+  {id:1,name:'Hora de cobertura fotográfica',code:'COB-FOTO',cat:'Cobertura',unit:'hora',price:2500,cost:0,desc:'Cobertura fotográfica profesional por hora'},
+  {id:2,name:'Hora de cobertura en video',code:'COB-VID',cat:'Cobertura',unit:'hora',price:3000,cost:0,desc:'Cobertura cinematográfica por hora'},
+  {id:3,name:'Hora adicional (fuera del combo)',code:'COB-ADD',cat:'Cobertura',unit:'hora',price:3500,cost:0,desc:'Hora extra pactada fuera del paquete base'},
+  {id:4,name:'Cobertura completa (foto + video)',code:'COB-MIX',cat:'Cobertura',unit:'evento',price:15000,cost:0,desc:'Cobertura completa foto y video del evento'},
+
+  // FOTOGRAFÍAS
+  {id:5,name:'Foto digital retocada',code:'FOTO-DIG',cat:'Fotografía',unit:'foto',price:200,cost:0,desc:'Foto editada y retocada profesionalmente'},
+  {id:6,name:'Fotos adicionales (pack de 10)',code:'FOTO-PACK',cat:'Fotografía',unit:'pack',price:1500,cost:0,desc:'10 fotos digitales adicionales retocadas'},
+  {id:7,name:'Galería virtual con acceso de por vida',code:'GAL-VIR',cat:'Fotografía',unit:'unidad',price:2000,cost:0,desc:'Galería online privada, acceso permanente'},
+  {id:8,name:'Selección de fotos por el fotógrafo',code:'SEL-FOTO',cat:'Fotografía',unit:'unidad',price:500,cost:0,desc:'Curación y selección de mejores tomas'},
+
+  // VIDEO
+  {id:9,name:'Video resumen (1-5 min)',code:'VID-RES',cat:'Video',unit:'unidad',price:5000,cost:0,desc:'Video resumen editado de la actividad'},
+  {id:10,name:'Película cinematográfica (10-15 min)',code:'VID-CIN',cat:'Video',unit:'unidad',price:12000,cost:0,desc:'Película principal estilo cinematográfico'},
+  {id:11,name:'Teaser para redes sociales (60s)',code:'VID-TEA',cat:'Video',unit:'unidad',price:3500,cost:0,desc:'Corte para Instagram/TikTok'},
+  {id:12,name:'Video resumen para RRSS',code:'VID-RRSS',cat:'Video',unit:'unidad',price:2500,cost:0,desc:'Reel editado para redes sociales'},
+
+  // ÁLBUMES
+  {id:13,name:'Album Digital 5x7',code:'ALB-5x7',cat:'Álbumes',unit:'unidad',price:6800,cost:2125,desc:'Álbum impreso 5x7 pulgadas'},
+  {id:14,name:'Album Digital 6x8',code:'ALB-6x8',cat:'Álbumes',unit:'unidad',price:8000,cost:2700,desc:'Álbum impreso 6x8 pulgadas'},
+  {id:15,name:'Album Digital 8x10',code:'ALB-8x10',cat:'Álbumes',unit:'unidad',price:12000,cost:3450,desc:'Álbum impreso 8x10 pulgadas'},
+  {id:16,name:'Album Digital 10x12',code:'ALB-10x12',cat:'Álbumes',unit:'unidad',price:18000,cost:4500,desc:'Álbum impreso 10x12 pulgadas'},
+
+  // CAJAS
+  {id:17,name:'Caja de madera para álbum 6x8',code:'CAJA-6x8',cat:'Cajas',unit:'unidad',price:1250,cost:600,desc:'Caja madera personalizada 6x8'},
+  {id:18,name:'Caja de madera para álbum 8x10',code:'CAJA-8x10',cat:'Cajas',unit:'unidad',price:1400,cost:700,desc:'Caja madera personalizada 8x10'},
+  {id:19,name:'Caja Pro para álbum 8x10',code:'CAJAP-8x10',cat:'Cajas',unit:'unidad',price:2050,cost:950,desc:'Caja premium personalizada 8x10'},
+  {id:20,name:'Caja Pro para álbum 10x12',code:'CAJAP-10x12',cat:'Cajas',unit:'unidad',price:2450,cost:1150,desc:'Caja premium personalizada 10x12'},
+
+  // CANVAS
+  {id:21,name:'Canvas 16x20',code:'CANVAS-1620',cat:'Canvas',unit:'unidad',price:4200,cost:1155,desc:'Impresión en canvas 16x20 pulgadas'},
+  {id:22,name:'Canvas 20x30',code:'CANVAS-2030',cat:'Canvas',unit:'unidad',price:7200,cost:1900,desc:'Impresión en canvas 20x30 pulgadas'},
+  {id:23,name:'Canvas 30x40',code:'CANVAS-3040',cat:'Canvas',unit:'unidad',price:8000,cost:2600,desc:'Impresión en canvas 30x40 pulgadas'},
+
+  // FOTOS IMPRESAS
+  {id:24,name:'Foto impresa 4x6',code:'IMP-4x6',cat:'Fotos Impresas',unit:'foto',price:50,cost:11,desc:'Foto impresa tamaño 4x6'},
+  {id:25,name:'Foto impresa 5x7',code:'IMP-5x7',cat:'Fotos Impresas',unit:'foto',price:75,cost:17,desc:'Foto impresa tamaño 5x7'},
+  {id:26,name:'Foto impresa 8x10',code:'IMP-8x10',cat:'Fotos Impresas',unit:'foto',price:150,cost:40,desc:'Foto impresa tamaño 8x10'},
+
+  // ADICIONALES
+  {id:27,name:'Entrega Express',code:'EXPRESS',cat:'Adicionales',unit:'unidad',price:2500,cost:0,desc:'Entrega prioritaria en menos de 48h'},
+  {id:28,name:'USB personalizado',code:'USB',cat:'Adicionales',unit:'unidad',price:1500,cost:400,desc:'USB grabado con el material del evento'},
+  {id:29,name:'2do Fotógrafo / Camarógrafo',code:'2ND-CAM',cat:'Adicionales',unit:'unidad',price:8000,cost:0,desc:'Segundo operador de cámara adicional'},
+  {id:30,name:'Drone (DJI Mini 2)',code:'DRONE',cat:'Adicionales',unit:'evento',price:5000,cost:0,desc:'Tomas aéreas con drone profesional'},
+  {id:31,name:'Sesión Pre-evento (Save the Date)',code:'PRE-EVT',cat:'Adicionales',unit:'sesión',price:6000,cost:0,desc:'Sesión fotográfica previa al evento'},
+];
+
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+let catalog = JSON.parse(localStorage.getItem('wu_catalog') || 'null') || JSON.parse(JSON.stringify(DEFAULT_CATALOG));
+let comboItems = []; // {uid, productId, name, code, cat, unit, qty, unitPrice, cost, discount, desc, showDesc}
+let savedCombos = JSON.parse(localStorage.getItem('wu_combos') || '[]');
+let itbisOn = false;
+let colVis = {code:true, desc:true, qty:true, unit:true, disc:false, total:true};
+
+// ════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active', ['builder','catalog','compare'][i]===tab);
+  });
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.view-full').forEach(v=>v.classList.remove('active'));
+  if(tab==='builder') document.getElementById('tab-builder').classList.add('active');
+  else if(tab==='catalog'){document.getElementById('tab-catalog').classList.add('active');renderEditor();}
+  else if(tab==='compare'){document.getElementById('tab-compare').classList.add('active');renderCompare();}
+}
+
+// ════════════════════════════════════════════
+// CATÁLOGO SIDEBAR
+// ════════════════════════════════════════════
+function buildCatalog(filter=''){
+  const list = document.getElementById('cat-list');
+  list.innerHTML='';
+  const groups={};
+  catalog.forEach(p=>{
+    if(filter && !p.name.toLowerCase().includes(filter.toLowerCase()) && !p.cat.toLowerCase().includes(filter.toLowerCase())) return;
+    if(!groups[p.cat]) groups[p.cat]=[];
+    groups[p.cat].push(p);
+  });
+  Object.entries(groups).forEach(([cat,items])=>{
+    const g=document.createElement('div');
+    g.className='cat-group';
+    g.innerHTML=`
+      <div class="cat-group-hd" onclick="toggleGroup(this)">
+        ${cat} <span class="cat-arrow">▾</span>
+      </div>
+      <div class="cat-items">
+        ${items.map(p=>`
+          <div class="cat-item" title="${p.desc||''}">
+            <div>
+              <div class="cat-item-name">${p.name}</div>
+              <div class="cat-item-sub">${p.code} · por ${p.unit}</div>
+            </div>
+            <div style="text-align:right">
+              <div class="cat-item-price">${fmt(p.price)}</div>
+              <div class="cat-item-unit">/${p.unit}</div>
+            </div>
+            <button class="add-btn" onclick="addToCombo(${p.id})">+</button>
+          </div>
+        `).join('')}
+      </div>`;
+    list.appendChild(g);
+  });
+}
+function toggleGroup(el){el.parentElement.classList.toggle('collapsed');}
+function filterCatalog(v){buildCatalog(v);}
+
+// ════════════════════════════════════════════
+// COMBO ITEMS
+// ════════════════════════════════════════════
+function addToCombo(productId){
+  const p = catalog.find(x=>x.id===productId);
+  if(!p) return;
+  comboItems.push({
+    uid: Date.now()+Math.random(),
+    productId: p.id,
+    name: p.name,
+    code: p.code,
+    cat: p.cat,
+    unit: p.unit,
+    qty: 1,
+    unitPrice: p.price,
+    cost: p.cost,
+    discount: 0,
+    desc: p.desc||'',
+    showDesc: true,
+  });
+  renderCombo();
+  recalculate();
+}
+
+function addCustomItem(){
+  comboItems.push({
+    uid: Date.now()+Math.random(),
+    productId: null,
+    name: 'Ítem personalizado',
+    code: '',
+    cat: 'Manual',
+    unit: 'unidad',
+    qty: 1,
+    unitPrice: 0,
+    cost: 0,
+    discount: 0,
+    desc: '',
+    showDesc: true,
+  });
+  renderCombo();
+  recalculate();
+}
+
+function removeItem(uid){
+  comboItems=comboItems.filter(x=>x.uid!==uid);
+  renderCombo();
+  recalculate();
+}
+
+function updateItem(uid,field,val){
+  const item=comboItems.find(x=>x.uid==uid);
+  if(!item) return;
+  if(field==='qty'||field==='unitPrice'||field==='discount'||field==='cost') val=parseFloat(val)||0;
+  item[field]=val;
+  recalculate();
+  // update total cell
+  const row=document.querySelector(`tr[data-uid="${uid}"]`);
+  if(row){
+    const totalEl=row.querySelector('.item-total');
+    if(totalEl){
+      const lineTotal = item.qty * item.unitPrice * (1-(item.discount||0)/100);
+      totalEl.textContent = 'RD$'+fmtNum(lineTotal);
+      totalEl.className='item-total'+(lineTotal===0?' zero':'');
+    }
+  }
+}
+
+function renderCombo(){
+  const tbody=document.getElementById('items-body');
+  if(comboItems.length===0){
+    tbody.innerHTML=`<tr id="empty-row"><td colspan="7">
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p style="font-size:11px;line-height:1.6;">Haz clic en <strong style="color:var(--orange)">+</strong> en el catálogo<br>para agregar artículos al combo.</p>
+      </div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = comboItems.map((item,i)=>{
+    const lineTotal = item.qty * item.unitPrice * (1-(item.discount||0)/100);
+    const showCode = colVis.code && item.code;
+    const showDesc = colVis.desc && item.desc;
+    return `<tr data-uid="${item.uid}">
+      <td class="td-num">${i+1}</td>
+      <td class="td-name">
+        <input class="ed-input" style="width:100%;margin-bottom:3px;font-size:11px;font-weight:500;" 
+          value="${esc(item.name)}" onchange="updateItem('${item.uid}','name',this.value)" placeholder="Nombre del artículo">
+        ${showCode?`<div><input class="ed-input" style="width:120px;font-size:9px;color:var(--gold)" value="${esc(item.code)}" onchange="updateItem('${item.uid}','code',this.value)" placeholder="Código"></div>`:''}
+        ${showDesc?`<div><input class="ed-input" style="width:100%;font-size:9px;color:var(--gold)" value="${esc(item.desc)}" onchange="updateItem('${item.uid}','desc',this.value)" placeholder="Descripción (opcional)"></div>`:''}
+      </td>
+      <td class="td-qty col-qty" ${!colVis.qty?'style="display:none"':''}>
+        <div class="field-wrap">
+          <span class="field-label">CANT.</span>
+          <input class="field-input" type="number" value="${item.qty}" min="0" step="0.5" 
+            onchange="updateItem('${item.uid}','qty',this.value)" oninput="updateItem('${item.uid}','qty',this.value)">
+          <span style="font-size:8px;color:var(--gold);text-align:right">${item.unit}</span>
+        </div>
+      </td>
+      <td class="td-unit col-unit" ${!colVis.unit?'style="display:none"':''}>
+        <div class="field-wrap">
+          <span class="field-label">PRECIO UNIT.</span>
+          <input class="field-input unit-field" type="number" value="${item.unitPrice}" min="0" step="100"
+            onchange="updateItem('${item.uid}','unitPrice',this.value)" oninput="updateItem('${item.uid}','unitPrice',this.value)">
+        </div>
+      </td>
+      <td class="td-disc col-disc" ${!colVis.disc?'style="display:none"':''}>
+        <div class="field-wrap">
+          <span class="field-label">DESC %</span>
+          <input class="field-input" type="number" value="${item.discount||0}" min="0" max="100" step="1"
+            onchange="updateItem('${item.uid}','discount',this.value)" oninput="updateItem('${item.uid}','discount',this.value)">
+        </div>
+      </td>
+      <td class="td-total col-total" ${!colVis.total?'style="display:none"':''}>
+        <span class="item-total${lineTotal===0?' zero':''}">RD$${fmtNum(lineTotal)}</span>
+        ${colVis.unit&&colVis.qty?`<div style="font-size:8px;color:var(--gold);text-align:right;margin-top:2px;">${item.qty}×${fmtNum(item.unitPrice)}</div>`:''}
+      </td>
+      <td><button class="remove-btn" onclick="removeItem('${item.uid}')">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════
+// COLUMNAS MODULARES
+// ════════════════════════════════════════════
+function toggleCol(col, el){
+  colVis[col]=!colVis[col];
+  el.classList.toggle('on',colVis[col]);
+  renderCombo();
+  // También ocultar/mostrar encabezados
+  document.querySelectorAll(`.col-${col}`).forEach(td=>{
+    td.style.display=colVis[col]?'':'none';
+  });
+}
+
+// ════════════════════════════════════════════
+// ITBIS & CÁLCULOS
+// ════════════════════════════════════════════
+function toggleItbis(){
+  itbisOn=!itbisOn;
+  const sw=document.getElementById('itbis-sw');
+  const lb=document.getElementById('itbis-label');
+  sw.classList.toggle('on',itbisOn);
+  lb.style.color=itbisOn?'var(--orange)':'var(--gold)';
+  recalculate();
+}
+
+function recalculate(){
+  const globalDisc=parseFloat(document.getElementById('global-disc').value)||0;
+  const targetMargin=parseFloat(document.getElementById('multiplier').value)||30;
+  const customPriceInput=document.getElementById('custom-price');
+  const userEnteredPrice=parseFloat(customPriceInput.value)||0;
+
+  // Subtotal = suma de (qty × unitPrice × (1-item_disc%))
+  let subtotal = comboItems.reduce((s,it)=> s + it.qty*it.unitPrice*(1-(it.discount||0)/100), 0);
+  let afterGlobalDisc = subtotal*(1-globalDisc/100);
+  let itbisAmount = itbisOn ? afterGlobalDisc*0.18 : 0;
+  let grandTotal = afterGlobalDisc + itbisAmount;
+  let totalCost = comboItems.reduce((s,it)=> s + it.qty*(it.cost||0), 0);
+
+  // PRECIO SUGERIDO = total del combo + margen objetivo %
+  // Fórmula: total / (1 - margen%) para que el margen sea sobre el precio de venta
+  let suggested = targetMargin > 0
+    ? Math.round((grandTotal / (1 - targetMargin/100)) / 100) * 100
+    : grandTotal;
+
+  // Actualizar placeholder del campo editable
+  if(!userEnteredPrice && comboItems.length>0){
+    customPriceInput.placeholder = 'RD$'+fmtNum(suggested);
+  }
+
+  // Precio efectivo para rentabilidad
+  const effectivePrice = userEnteredPrice || suggested;
+
+  // Footer
+  document.getElementById('footer-subtotal').textContent='RD$'+fmtNum(subtotal);
+  document.getElementById('footer-itbis').textContent='RD$'+fmtNum(itbisAmount);
+  document.getElementById('footer-total').textContent='RD$'+fmtNum(grandTotal);
+  document.getElementById('footer-suggested').textContent='RD$'+fmtNum(suggested);
+  document.getElementById('footer-suggested-hint').textContent=
+    `total + ${targetMargin}% ganancia objetivo`;
+
+  // Métricas panel
+  document.getElementById('m-count').textContent=comboItems.length;
+  document.getElementById('m-subtotal').textContent='RD$'+fmtNum(subtotal);
+  document.getElementById('m-total').textContent='RD$'+fmtNum(grandTotal);
+  document.getElementById('m-cost').textContent='RD$'+fmtNum(totalCost);
+  document.getElementById('m-suggested').textContent='RD$'+fmtNum(suggested);
+  document.getElementById('m-suggested-sub').textContent=
+    `total (${fmtNum(grandTotal)}) + ${targetMargin}% ganancia`;
+
+  // Rentabilidad
+  if(comboItems.length>0){
+    const profit=effectivePrice-grandTotal;
+    const margin=effectivePrice>0?(profit/effectivePrice*100):0;
+    const roi=grandTotal>0?profit/grandTotal*100:0;
+    const profitEl=document.getElementById('m-profit');
+    profitEl.textContent='RD$'+fmtNum(profit);
+    profitEl.className='metric-val '+(profit>=0?'green':'red');
+    const marginEl=document.getElementById('m-margin');
+    marginEl.textContent=margin.toFixed(1)+'%';
+    const bc=margin>=50?'var(--green)':margin>=30?'var(--orange)':'var(--danger)';
+    marginEl.className='metric-val '+(margin>=50?'green':margin>=30?'orange':'red');
+    document.getElementById('margin-bar').style.cssText=`width:${Math.min(Math.max(margin,0),100)}%;background:${bc}`;
+    document.getElementById('m-roi').textContent=roi.toFixed(0)+'%';
+    document.getElementById('m-price-hint').textContent=
+      userEnteredPrice
+        ? `Precio personalizado · margen real ${margin.toFixed(1)}%`
+        : `Usando precio sugerido · margen ${margin.toFixed(1)}%`;
+  } else {
+    ['m-profit','m-margin','m-roi'].forEach(id=>{
+      document.getElementById(id).textContent='—';
+      document.getElementById(id).className='metric-val gold';
+    });
+    document.getElementById('margin-bar').style.width='0';
+    document.getElementById('m-price-hint').textContent='↑ Edita si quieres un precio distinto';
+  }
+}
+
+// ════════════════════════════════════════════
+// GUARDAR / COMPARAR
+// ════════════════════════════════════════════
+function saveCombo(){
+  if(comboItems.length===0){alert('Agrega al menos un ítem al combo.');return;}
+  const name=document.getElementById('combo-name').value||'SIN NOMBRE';
+  const globalDisc=parseFloat(document.getElementById('global-disc').value)||0;
+  let subtotal=comboItems.reduce((s,it)=>s+it.qty*it.unitPrice*(1-(it.discount||0)/100),0);
+  let afterDisc=subtotal*(1-globalDisc/100);
+  let itbis=itbisOn?afterDisc*0.18:0;
+  let total=afterDisc+itbis;
+  let totalCost=comboItems.reduce((s,it)=>s+it.qty*(it.cost||0),0);
+  const customPrice=parseFloat(document.getElementById('custom-price').value)||total;
+  const profit=customPrice-total;
+  const margin=customPrice>0?(profit/customPrice*100):0;
+  const mult=parseFloat(document.getElementById('multiplier').value)||3;
+
+  savedCombos.push({
+    id:Date.now(),name,
+    items:comboItems.map(it=>({...it})),
+    subtotal,afterDisc,itbis,total,totalCost,
+    customPrice,profit,margin:margin.toFixed(1),mult,
+    globalDisc,itbisOn,
+    date:new Date().toLocaleDateString('es-DO')
+  });
+  localStorage.setItem('wu_combos',JSON.stringify(savedCombos));
+  alert(`✅ "${name}" guardado correctamente.`);
+}
+
+function clearCombo(){
+  if(comboItems.length>0&&!confirm('¿Limpiar el combo actual?')) return;
+  comboItems=[];
+  document.getElementById('custom-price').value='';
+  document.getElementById('global-disc').value='0';
+  renderCombo();
+  recalculate();
+}
+
+function clearAllCombos(){
+  if(!confirm('¿Borrar todos los combos guardados?')) return;
+  savedCombos=[];
+  localStorage.removeItem('wu_combos');
+  renderCompare();
+}
+
+// ════════════════════════════════════════════
+// COMPARADOR
+// ════════════════════════════════════════════
+function renderCompare(){
+  const wrap=document.getElementById('compare-content');
+  document.getElementById('compare-count').textContent=savedCombos.length+' combo(s) guardado(s)';
+  if(savedCombos.length===0){
+    wrap.innerHTML='<div class="no-data">Aún no tienes combos guardados.<br>Ve a <strong style="color:var(--orange)">CALCULADORA</strong>, arma un combo y presiona 💾 GUARDAR.</div>';
+    return;
+  }
+  const best=savedCombos.reduce((a,b)=>parseFloat(b.margin)>parseFloat(a.margin)?b:a,savedCombos[0]);
+  wrap.innerHTML=`<table class="compare-table">
+    <thead><tr>
+      <th>#</th><th>NOMBRE</th><th>ÍTEMS</th>
+      <th>SUBTOTAL</th><th>ITBIS</th><th>TOTAL</th>
+      <th>COSTO MATERIALES</th><th>PRECIO VENTA</th>
+      <th>GANANCIA</th><th>MARGEN</th><th>FECHA</th><th></th>
+    </tr></thead>
+    <tbody>
+    ${savedCombos.map((c,i)=>`
+      <tr class="${c.id===best.id?'best-row':''}">
+        <td class="td-gold">${i+1}${c.id===best.id?' ⭐':''}</td>
+        <td style="font-family:'Bebas Neue';letter-spacing:1px;font-size:13px;">${c.name}</td>
+        <td class="td-gold">${c.items.length}</td>
+        <td style="font-family:'DM Mono'">RD$${fmtNum(c.subtotal)}</td>
+        <td class="td-gold" style="font-family:'DM Mono'">${c.itbisOn?'RD$'+fmtNum(c.itbis):'—'}</td>
+        <td class="td-o" style="font-family:'DM Mono'">RD$${fmtNum(c.total)}</td>
+        <td style="font-family:'DM Mono';color:var(--gold)">RD$${fmtNum(c.totalCost)}</td>
+        <td style="font-family:'DM Mono';font-weight:500">RD$${fmtNum(c.customPrice)}</td>
+        <td class="${c.profit>=0?'td-g':'td-r'}" style="font-family:'DM Mono'">RD$${fmtNum(c.profit)}</td>
+        <td class="${parseFloat(c.margin)>=50?'td-g':parseFloat(c.margin)>=30?'td-o':'td-r'}">${c.margin}%</td>
+        <td class="td-gold">${c.date}</td>
+        <td><button class="btn btn-danger btn-sm" style="padding:3px 8px;font-size:10px" onclick="deleteCombo(${c.id})">✕</button></td>
+      </tr>
+      <tr>
+        <td colspan="12" style="padding:4px 12px 10px;border-bottom:2px solid var(--border);">
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">
+            ${c.items.map(it=>`<span style="font-size:9px;padding:2px 7px;background:var(--card2);border:1px solid var(--border);border-radius:2px;color:var(--gold)">${it.qty}× ${it.name}</span>`).join('')}
+          </div>
+        </td>
+      </tr>
+    `).join('')}
+    </tbody>
+  </table>`;
+}
+
+function deleteCombo(id){
+  if(!confirm('¿Eliminar este combo?')) return;
+  savedCombos=savedCombos.filter(c=>c.id!==id);
+  localStorage.setItem('wu_combos',JSON.stringify(savedCombos));
+  renderCompare();
+}
+
+// ════════════════════════════════════════════
+// EDITOR DE CATÁLOGO
+// ════════════════════════════════════════════
+const CATS=['Cobertura','Fotografía','Video','Álbumes','Cajas','Canvas','Fotos Impresas','Adicionales'];
+
+function renderEditor(){
+  const tbody=document.getElementById('editor-body');
+  tbody.innerHTML=catalog.map((p,i)=>`
+    <tr data-id="${p.id}">
+      <td style="color:var(--gold);font-size:10px">${i+1}</td>
+      <td><input class="ed-input" value="${esc(p.name)}" onchange="updateProduct(${p.id},'name',this.value)"></td>
+      <td>
+        <select class="cat-select" onchange="updateProduct(${p.id},'cat',this.value)">
+          ${CATS.map(c=>`<option value="${c}"${p.cat===c?' selected':''}>${c}</option>`).join('')}
+          <option value="${p.cat}"${!CATS.includes(p.cat)?' selected':''}>${!CATS.includes(p.cat)?p.cat:''}</option>
+        </select>
+      </td>
+      <td><input class="ed-input" value="${esc(p.unit)}" onchange="updateProduct(${p.id},'unit',this.value)" style="width:70px"></td>
+      <td><input class="ed-input price" type="number" value="${p.price}" onchange="updateProduct(${p.id},'price',parseFloat(this.value)||0)"></td>
+      <td><input class="ed-input price" type="number" value="${p.cost}" onchange="updateProduct(${p.id},'cost',parseFloat(this.value)||0)"></td>
+      <td><input class="ed-input" value="${esc(p.desc||'')}" onchange="updateProduct(${p.id},'desc',this.value)"></td>
+      <td><button class="remove-btn" onclick="deleteProduct(${p.id})">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+function updateProduct(id,field,val){
+  const p=catalog.find(x=>x.id===id);
+  if(p) p[field]=val;
+}
+
+function deleteProduct(id){
+  if(!confirm('¿Eliminar este artículo del catálogo?')) return;
+  catalog=catalog.filter(x=>x.id!==id);
+  renderEditor();
+}
+
+function addNewProduct(){
+  const maxId=catalog.reduce((m,p)=>Math.max(m,p.id),0);
+  catalog.push({id:maxId+1,name:'Nuevo artículo',code:'',cat:'Adicionales',unit:'unidad',price:0,cost:0,desc:''});
+  renderEditor();
+  // Scroll al final
+  setTimeout(()=>{
+    const tbody=document.getElementById('editor-body');
+    tbody.lastElementChild?.scrollIntoView({behavior:'smooth'});
+  },100);
+}
+
+function saveCatalog(){
+  // Leer valores actuales del DOM antes de guardar
+  localStorage.setItem('wu_catalog',JSON.stringify(catalog));
+  buildCatalog();
+  document.getElementById('catalog-status').textContent='✅ Catálogo guardado — '+catalog.length+' artículos';
+  setTimeout(()=>document.getElementById('catalog-status').textContent='',3000);
+}
+
+function resetCatalog(){
+  if(!confirm('¿Restaurar el catálogo original? Se perderán tus cambios.')) return;
+  catalog=JSON.parse(JSON.stringify(DEFAULT_CATALOG));
+  localStorage.removeItem('wu_catalog');
+  renderEditor();
+  buildCatalog();
+}
+
+// ════════════════════════════════════════════
+// IMPORT / EXPORT EXCEL (CSV simple)
+// ════════════════════════════════════════════
+function exportCatalogXLSX(){
+  const header='Nombre,Código,Categoría,Unidad,Precio Unitario,Costo,Descripción\n';
+  const rows=catalog.map(p=>
+    [p.name,p.code,p.cat,p.unit,p.price,p.cost,p.desc||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')
+  ).join('\n');
+  const blob=new Blob(['\ufeff'+header+rows],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='wallup_catalogo_articulos.csv';
+  a.click();
+}
+
+function importCatalog(input){
+  const file=input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const lines=e.target.result.split('\n').filter(l=>l.trim());
+    const header=lines[0].toLowerCase();
+    const isCSV=file.name.endsWith('.csv');
+    if(!isCSV){alert('Por ahora importa en formato CSV. Exporta tu Excel como .csv y vuelve a intentar.');return;}
+    const maxId=catalog.reduce((m,p)=>Math.max(m,p.id),0);
+    let added=0;
+    lines.slice(1).forEach((line,i)=>{
+      const cols=line.match(/("([^"]|"")*"|[^,]*)(,|$)/g)||[];
+      const clean=cols.map(c=>c.replace(/^"|"$/g,'').replace(/""/g,'"').replace(/,$/,'').trim());
+      if(clean[0]){
+        catalog.push({
+          id:maxId+i+1,
+          name:clean[0]||'',
+          code:clean[1]||'',
+          cat:clean[2]||'Adicionales',
+          unit:clean[3]||'unidad',
+          price:parseFloat(clean[4])||0,
+          cost:parseFloat(clean[5])||0,
+          desc:clean[6]||''
+        });
+        added++;
+      }
+    });
+    renderEditor();
+    buildCatalog();
+    alert(`✅ Se importaron ${added} artículo(s). Revisa el catálogo y guarda.`);
+  };
+  reader.readAsText(file,'UTF-8');
+  input.value='';
+}
+
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('import-zone').classList.remove('drag');
+  const file=e.dataTransfer.files[0];
+  if(file) importCatalog({files:[file]});
+}
+
+// ════════════════════════════════════════════
+// COPIAR RESUMEN
+// ════════════════════════════════════════════
+function copyResumen(){
+  const name=document.getElementById('combo-name').value||'COMBO';
+  const globalDisc=parseFloat(document.getElementById('global-disc').value)||0;
+  let subtotal=comboItems.reduce((s,it)=>s+it.qty*it.unitPrice*(1-(it.discount||0)/100),0);
+  let afterDisc=subtotal*(1-globalDisc/100);
+  let itbis=itbisOn?afterDisc*0.18:0;
+  let total=afterDisc+itbis;
+
+  const lines=[
+    `━━━━━━━━━━━━━━━━━━━━━━━`,
+    `WALL UP MEDIA — ${name}`,
+    `━━━━━━━━━━━━━━━━━━━━━━━`,
+    ...comboItems.map(it=>{
+      const lt=it.qty*it.unitPrice*(1-(it.discount||0)/100);
+      return `${it.qty} × ${it.name} @ RD$${fmtNum(it.unitPrice)} = RD$${fmtNum(lt)}`;
+    }),
+    '',
+    `SUBTOTAL:   RD$${fmtNum(subtotal)}`,
+    globalDisc>0?`DESCUENTO (${globalDisc}%): -RD$${fmtNum(subtotal-afterDisc)}`:'',
+    itbisOn?`ITBIS 18%:  RD$${fmtNum(itbis)}`:'',
+    `TOTAL:      RD$${fmtNum(total)}`,
+    `━━━━━━━━━━━━━━━━━━━━━━━`,
+  ].filter(l=>l!==undefined);
+
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('✅ Resumen copiado al portapapeles.'));
+}
+
+function exportCompare(){
+  if(savedCombos.length===0){alert('No hay combos guardados.');return;}
+  const lines=savedCombos.map(c=>`${c.name} | Total: RD$${fmtNum(c.total)} | Precio Venta: RD$${fmtNum(c.customPrice)} | Ganancia: RD$${fmtNum(c.profit)} | Margen: ${c.margin}%`).join('\n');
+  navigator.clipboard.writeText(lines).then(()=>alert('✅ Comparación copiada.'));
+}
+
+// ════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════
+function fmt(n){return 'RD$'+fmtNum(n);}
+function fmtNum(n){return Number(n||0).toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+buildCatalog();
+recalculate();
+</script>
+</body>
+</html>
