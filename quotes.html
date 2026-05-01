@@ -1247,7 +1247,7 @@ async function pullPaymentsFromNotion(){
       sorts:[{property:dateProp,direction:'ascending'}]
     };
 
-    const resp=await fetch(`https://api.notion.com/v1/databases/${cfg.dbFinance}/query`,{
+    const resp=await fetch(`https://notion-proxy-wallup.wallupmedia.workers.dev/notion/v1/databases/${cfg.dbFinance}/query`,{
       method:'POST',
       headers:{
         'Authorization':'Bearer '+cfg.token,
@@ -1356,7 +1356,7 @@ async function syncPaymentToNotion(payment, totals){
   const histText=pays.map(x=>`${x.date} — RD$${fmtNum(x.amount)}${x.notes?' ('+x.notes+')':''}`).join('\n');
   props['NOTAS']={rich_text:[{text:{content:('[PAGOS APP]\n'+histText).substring(0,2000)}}]};
 
-  await fetch('https://api.notion.com/v1/pages/'+currentQuote.notionPageId,{
+  await fetch('https://notion-proxy-wallup.wallupmedia.workers.dev/notion/v1/pages/'+currentQuote.notionPageId,{
     method:'PATCH',
     headers:{'Authorization':'Bearer '+cfg.token,'Notion-Version':'2022-06-28','Content-Type':'application/json'},
     body:JSON.stringify({properties:props})
@@ -1706,7 +1706,7 @@ async function saveNewClient(){
     if(npc.tipo&&newClient.tipo) props[npc.tipo]={select:{name:newClient.tipo}};
 
     try{
-      const resp=await fetch('https://api.notion.com/v1/pages',{
+      const resp=await fetch('https://notion-proxy-wallup.wallupmedia.workers.dev/notion/v1/pages',{
         method:'POST',
         headers:{'Authorization':'Bearer '+cfg.token,'Notion-Version':'2022-06-28','Content-Type':'application/json'},
         body:JSON.stringify({parent:{database_id:cfg.dbClients},properties:props})
@@ -1808,7 +1808,7 @@ async function importClientsFromNotion(){
     let allPages=[];let cursor=undefined;
     do{
       const body=cursor?{start_cursor:cursor}:{};
-      const resp=await fetch(`https://api.notion.com/v1/databases/${cfg.dbClients}/query`,{
+      const resp=await fetch(`https://notion-proxy-wallup.wallupmedia.workers.dev/notion/v1/databases/${cfg.dbClients}/query`,{
         method:'POST',
         headers:{'Authorization':'Bearer '+cfg.token,'Notion-Version':'2022-06-28','Content-Type':'application/json'},
         body:JSON.stringify(body)
@@ -1974,7 +1974,7 @@ async function testNotionConnection(){
   if(!cfg.token||!cfg.dbQuotes){result.textContent='⚠️ Completa el token y el ID de la base de datos primero.';return;}
   result.textContent='🔄 Probando conexión...';
   try{
-    const resp=await fetch(`https://api.notion.com/v1/databases/${cfg.dbQuotes}`,{
+    const resp=await fetch(`https://notion-proxy-wallup.wallupmedia.workers.dev/notion/v1/databases/${cfg.dbQuotes}`,{
       headers:{'Authorization':'Bearer '+cfg.token,'Notion-Version':'2022-06-28'}
     });
     if(resp.ok){
@@ -2025,14 +2025,14 @@ async function syncToNotion(){
     let resp;
     if(currentQuote.notionPageId){
       // UPDATE
-      resp=await fetch('https://api.notion.com/v1/pages/'+currentQuote.notionPageId,{
+      resp=await fetch('https://notion-proxy-wallup.wallupmedia.workers.dev/notion/v1/pages/'+currentQuote.notionPageId,{
         method:'PATCH',
         headers:{'Authorization':'Bearer '+cfg.token,'Notion-Version':'2022-06-28','Content-Type':'application/json'},
         body:JSON.stringify({properties:props})
       });
     } else {
       // CREATE
-      resp=await fetch('https://api.notion.com/v1/pages',{
+      resp=await fetch('https://notion-proxy-wallup.wallupmedia.workers.dev/notion/v1/pages',{
         method:'POST',
         headers:{'Authorization':'Bearer '+cfg.token,'Notion-Version':'2022-06-28','Content-Type':'application/json'},
         body:JSON.stringify({parent:{database_id:cfg.dbQuotes},properties:props})
