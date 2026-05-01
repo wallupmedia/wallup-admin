@@ -594,15 +594,34 @@ Cuenta BHD: 31937430015</textarea>
 <!-- ═══════════════════════════════════════════ -->
 <div class="view" id="tab-clients">
   <div style="padding:20px;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
       <h2 style="font-family:'Bebas Neue';letter-spacing:3px;font-size:22px;">BASE DE CLIENTES</h2>
       <span style="font-size:10px;color:var(--gold);" id="clients-count">0 clientes</span>
       <button class="btn btn-outline btn-sm" id="import-clients-btn" onclick="importClientsFromNotion()" style="border-color:var(--blue);color:var(--blue)">↓ IMPORTAR DESDE NOTION</button>
       <button class="btn btn-orange btn-sm ml-auto" onclick="openNewClient()">+ NUEVO CLIENTE</button>
     </div>
+
+    <!-- Barra de búsqueda + toggle de vista -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <div style="flex:1;position:relative;">
+        <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:13px;pointer-events:none;">🔍</span>
+        <input id="clients-search" class="inp" type="text" placeholder="Buscar por nombre, WhatsApp o categoría..."
+          style="padding-left:30px;width:100%;" oninput="renderClients()">
+      </div>
+      <!-- View toggles -->
+      <div style="display:flex;border:1px solid var(--border2);border-radius:3px;overflow:hidden;flex-shrink:0;">
+        <button id="view-gallery-btn" onclick="setClientView('gallery')"
+          style="padding:5px 12px;background:var(--orange);color:var(--bg);border:none;cursor:pointer;font-family:'Bebas Neue';letter-spacing:1px;font-size:11px;transition:all .15s"
+          title="Vista galería">⊞ GALERÍA</button>
+        <button id="view-list-btn" onclick="setClientView('list')"
+          style="padding:5px 12px;background:var(--card2);color:var(--gold);border:none;cursor:pointer;font-family:'Bebas Neue';letter-spacing:1px;font-size:11px;border-left:1px solid var(--border2);transition:all .15s"
+          title="Vista lista">☰ LISTA</button>
+      </div>
+    </div>
+
     <div id="import-clients-result" style="display:none;font-size:10px;padding:6px 10px;border-radius:3px;margin-bottom:10px;"></div>
-    <div class="clients-grid" id="clients-grid">
-      <div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--gold);font-size:11px;">No tienes clientes aún. Crea uno nuevo.</div>
+    <div id="clients-grid">
+      <div style="text-align:center;padding:60px;color:var(--gold);font-size:11px;">No tienes clientes aún. Crea uno nuevo.</div>
     </div>
   </div>
 </div>
@@ -1640,34 +1659,129 @@ function deleteQuote(id){
 // ══════════════════════════════════════════════════
 // CLIENTES
 // ══════════════════════════════════════════════════
+let clientView = 'gallery'; // 'gallery' | 'list'
+
+function setClientView(view){
+  clientView = view;
+  const galleryBtn = document.getElementById('view-gallery-btn');
+  const listBtn = document.getElementById('view-list-btn');
+  if(galleryBtn){
+    galleryBtn.style.background = view==='gallery' ? 'var(--orange)' : 'var(--card2)';
+    galleryBtn.style.color = view==='gallery' ? 'var(--bg)' : 'var(--gold)';
+    listBtn.style.background = view==='list' ? 'var(--orange)' : 'var(--card2)';
+    listBtn.style.color = view==='list' ? 'var(--bg)' : 'var(--gold)';
+  }
+  renderClients();
+}
+
 function renderClients(){
-  const grid=document.getElementById('clients-grid');
-  document.getElementById('clients-count').textContent=clients.length+' clientes';
-  if(clients.length===0){
-    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--gold);font-size:11px;">No tienes clientes aún. Crea uno nuevo.</div>';
+  const container = document.getElementById('clients-grid');
+  const searchEl = document.getElementById('clients-search');
+  const query = (searchEl?.value||'').toLowerCase().trim();
+
+  // Filter by search
+  const filtered = query
+    ? clients.filter(c =>
+        (c.name||'').toLowerCase().includes(query) ||
+        (c.whatsapp||c.phone||'').toLowerCase().includes(query) ||
+        (c.categoria||'').toLowerCase().includes(query) ||
+        (c.tipo||'').toLowerCase().includes(query)
+      )
+    : clients;
+
+  document.getElementById('clients-count').textContent =
+    `${filtered.length}${query ? ' resultado(s)' : ' cliente(s)'}`;
+
+  if(filtered.length===0){
+    container.style.cssText = '';
+    container.innerHTML = `<div style="text-align:center;padding:60px;color:var(--gold);font-size:11px;">
+      ${query ? `Sin resultados para "<strong style="color:var(--cream)">${esc(query)}</strong>"` : 'No tienes clientes aún. Crea uno nuevo.'}
+    </div>`;
     return;
   }
-  grid.innerHTML=clients.map(c=>{
-    const clientQuotes=quotes.filter(q=>q.client?.name===c.name);
-    const totalBilled=clientQuotes.reduce((s,q)=>s+(q.total||0),0);
-    return `<div class="client-card" onclick="useClient('${c.id}')">
-      <div class="cc-name">${esc(c.name)}</div>
-      <div class="cc-phone">📞 ${c.whatsapp||c.phone||'—'}</div>
-      <div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;">
-        ${c.categoria?`<span class="status-badge" style="background:${catColor(c.categoria)};color:#080808;border:none">${c.categoria}</span>`:''}
-        ${c.tipo?`<span class="status-badge s-sent">${c.tipo}</span>`:''}
-        ${c.notionPageId?`<span style="font-size:8px;color:var(--green)">✓ Notion</span>`:''}
-      </div>
-      <div class="cc-stats">
-        <div class="cc-stat"><div class="cc-stat-num">${clientQuotes.length}</div><div class="cc-stat-lbl">TRABAJOS</div></div>
-        <div class="cc-stat"><div class="cc-stat-num" style="font-size:11px">RD$${fmtNum(totalBilled)}</div><div class="cc-stat-lbl">FACTURADO</div></div>
-      </div>
-      <div style="display:flex;gap:4px;margin-top:8px">
-        <button class="btn btn-orange btn-xs" onclick="event.stopPropagation();newQuoteForClient('${c.id}')">+ COTIZAR</button>
-        <button class="btn btn-danger btn-xs" onclick="event.stopPropagation();deleteClient('${c.id}')">✕</button>
-      </div>
-    </div>`;
-  }).join('');
+
+  if(clientView === 'gallery'){
+    // ── GALERÍA ──
+    container.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;';
+    container.innerHTML = filtered.map(c => {
+      const cq = quotes.filter(q=>q.client?.name===c.name);
+      const total = cq.reduce((s,q)=>s+(q.total||0),0);
+      const nameHl = highlight(esc(c.name), query);
+      const waHl   = highlight(esc(c.whatsapp||c.phone||'—'), query);
+      return `<div class="client-card" onclick="useClient('${c.id}')">
+        <div class="cc-name">${nameHl}</div>
+        <div class="cc-phone">📞 ${waHl}</div>
+        <div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;">
+          ${c.categoria?`<span class="status-badge" style="background:${catColor(c.categoria)};color:#080808;border:none">${c.categoria}</span>`:''}
+          ${c.tipo?`<span class="status-badge s-sent">${c.tipo}</span>`:''}
+          ${c.notionPageId?`<span style="font-size:8px;color:var(--green)">✓ Notion</span>`:''}
+        </div>
+        <div class="cc-stats">
+          <div class="cc-stat"><div class="cc-stat-num">${cq.length}</div><div class="cc-stat-lbl">TRABAJOS</div></div>
+          <div class="cc-stat"><div class="cc-stat-num" style="font-size:11px">RD$${fmtNum(total)}</div><div class="cc-stat-lbl">FACTURADO</div></div>
+        </div>
+        <div style="display:flex;gap:4px;margin-top:8px">
+          <button class="btn btn-orange btn-xs" onclick="event.stopPropagation();newQuoteForClient('${c.id}')">+ COTIZAR</button>
+          <button class="btn btn-danger btn-xs" onclick="event.stopPropagation();deleteClient('${c.id}')">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+
+  } else {
+    // ── LISTA ──
+    container.style.cssText = '';
+    container.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:11px;">
+        <thead>
+          <tr>
+            <th style="background:var(--card2);padding:8px 12px;text-align:left;font-family:'Bebas Neue';letter-spacing:2px;font-size:10px;color:var(--gold);border-bottom:1px solid var(--border);white-space:nowrap;">NOMBRE</th>
+            <th style="background:var(--card2);padding:8px 12px;text-align:left;font-family:'Bebas Neue';letter-spacing:2px;font-size:10px;color:var(--gold);border-bottom:1px solid var(--border);">WHATSAPP</th>
+            <th style="background:var(--card2);padding:8px 12px;text-align:left;font-family:'Bebas Neue';letter-spacing:2px;font-size:10px;color:var(--gold);border-bottom:1px solid var(--border);">CATEGORÍA</th>
+            <th style="background:var(--card2);padding:8px 12px;text-align:left;font-family:'Bebas Neue';letter-spacing:2px;font-size:10px;color:var(--gold);border-bottom:1px solid var(--border);">TIPO</th>
+            <th style="background:var(--card2);padding:8px 12px;text-align:right;font-family:'Bebas Neue';letter-spacing:2px;font-size:10px;color:var(--gold);border-bottom:1px solid var(--border);">TRABAJOS</th>
+            <th style="background:var(--card2);padding:8px 12px;text-align:right;font-family:'Bebas Neue';letter-spacing:2px;font-size:10px;color:var(--gold);border-bottom:1px solid var(--border);">FACTURADO</th>
+            <th style="background:var(--card2);padding:8px 12px;border-bottom:1px solid var(--border);width:90px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.map(c=>{
+            const cq=quotes.filter(q=>q.client?.name===c.name);
+            const total=cq.reduce((s,q)=>s+(q.total||0),0);
+            const nameHl=highlight(esc(c.name),query);
+            const waHl=highlight(esc(c.whatsapp||c.phone||'—'),query);
+            return `<tr style="cursor:pointer;border-bottom:1px solid var(--border)" onclick="useClient('${c.id}')"
+              onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background=''">
+              <td style="padding:10px 12px;">
+                <div style="color:var(--cream);font-weight:500">${nameHl}</div>
+                ${c.notionPageId?`<div style="font-size:8px;color:var(--green);margin-top:1px">✓ Notion</div>`:''}
+              </td>
+              <td style="padding:10px 12px;color:var(--gold)">${waHl}</td>
+              <td style="padding:10px 12px;">
+                ${c.categoria?`<span class="status-badge" style="background:${catColor(c.categoria)};color:#080808;border:none">${c.categoria}</span>`:'—'}
+              </td>
+              <td style="padding:10px 12px;">
+                ${c.tipo?`<span class="status-badge s-sent">${c.tipo}</span>`:'—'}
+              </td>
+              <td style="padding:10px 12px;text-align:right;color:var(--orange);font-family:'DM Mono'">${cq.length}</td>
+              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono';color:var(--cream)">RD$${fmtNum(total)}</td>
+              <td style="padding:10px 12px;">
+                <div style="display:flex;gap:4px;justify-content:flex-end">
+                  <button class="btn btn-orange btn-xs" onclick="event.stopPropagation();newQuoteForClient('${c.id}')">+ COTIZAR</button>
+                  <button class="btn btn-danger btn-xs" onclick="event.stopPropagation();deleteClient('${c.id}')">✕</button>
+                </div>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+}
+
+// Highlight matching text in search results
+function highlight(text, query){
+  if(!query) return text;
+  const re = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+  return text.replace(re, `<mark style="background:rgba(245,152,71,0.35);color:var(--cream);border-radius:1px">$1</mark>`);
 }
 
 function openNewClient(){ openModal('modal-client'); }
