@@ -842,6 +842,7 @@ const DEFAULT_CATALOG = [
 let catalog = JSON.parse(localStorage.getItem('wu_catalog') || 'null') || DEFAULT_CATALOG;
 let quotes = JSON.parse(localStorage.getItem('wu_quotes') || '[]');
 let clients = JSON.parse(localStorage.getItem('wu_clients') || '[]');
+let listSort = {col:'date', dir:'desc'}; // column sorting state
 let notionCfg = JSON.parse(localStorage.getItem('wu_notion') || '{}');
 let currentQuote = null;
 let edItems = [];
@@ -937,53 +938,69 @@ function loadQuoteIntoEditor(q){
 }
 
 function saveQuote(){
-  if(!currentQuote) return;
-  currentQuote.num = document.getElementById('f-num').value;
-  currentQuote.type = document.getElementById('f-type').value;
-  currentQuote.date = document.getElementById('f-date').value;
-  currentQuote.validUntil = document.getElementById('f-valid').value;
-  currentQuote.status = document.getElementById('f-status').value;
-  currentQuote.client = {
-    name: document.getElementById('f-client-name').value,
-    whatsapp: document.getElementById('f-client-phone').value,
-    email: document.getElementById('f-client-email').value,
-    service: document.getElementById('f-service-type').value,
-    notes: document.getElementById('f-client-notes').value,
-  };
-  currentQuote.items = edItems.map(it=>({...it}));
-  currentQuote.itbis = edItbis;
-  currentQuote.globalDisc = parseFloat(document.getElementById('ed-global-disc').value)||0;
-  currentQuote.policies = document.getElementById('f-policies').value;
-  currentQuote.bank = document.getElementById('f-bank').value;
-  currentQuote.internalNotes = document.getElementById('f-internal-notes').value;
-  if(!currentQuote.payments) currentQuote.payments = [];
-  currentQuote.received = currentQuote.payments.reduce((s,p)=>s+p.amount,0);
-  currentQuote.updatedAt = new Date().toISOString();
-
-  // Calcular total
-  const totals = calcTotals();
-  currentQuote.subtotal = totals.subtotal;
-  currentQuote.total = totals.grandTotal;
-  currentQuote.balance = totals.grandTotal - currentQuote.received;
-
-  // Guardar / actualizar
-  const idx = quotes.findIndex(q=>q.id===currentQuote.id);
-  if(idx>=0) quotes[idx]=currentQuote;
-  else quotes.unshift(currentQuote);
-
-  localStorage.setItem('wu_quotes', JSON.stringify(quotes));
-  document.getElementById('badge-total').textContent = quotes.length;
-
-  // Auto-guardar cliente nuevo
-  if(currentQuote.client.name){
-    const existing = clients.find(c=>c.name.toLowerCase()===currentQuote.client.name.toLowerCase());
-    if(!existing){
-      clients.unshift({id:Date.now(),...currentQuote.client,quotesCount:1,totalBilled:currentQuote.total});
-      localStorage.setItem('wu_clients', JSON.stringify(clients));
+  try {
+    if(!currentQuote){
+      showToast('⚠️ Crea una cotización primero — haz clic en + NUEVA COTIZACIÓN');
+      return;
     }
-  }
 
-  showToast('✅ Cotización guardada');
+    currentQuote.num = document.getElementById('f-num').value || currentQuote.num;
+    currentQuote.type = document.getElementById('f-type').value;
+    currentQuote.date = document.getElementById('f-date').value;
+    currentQuote.validUntil = document.getElementById('f-valid').value;
+    currentQuote.status = document.getElementById('f-status').value;
+    currentQuote.client = {
+      name: document.getElementById('f-client-name').value,
+      whatsapp: document.getElementById('f-client-phone').value,
+      email: document.getElementById('f-client-email').value,
+      service: document.getElementById('f-service-type').value,
+      notes: document.getElementById('f-client-notes').value,
+    };
+    currentQuote.items = edItems.map(it=>({...it}));
+    currentQuote.itbis = edItbis;
+    currentQuote.globalDisc = parseFloat(document.getElementById('ed-global-disc').value)||0;
+    currentQuote.policies = document.getElementById('f-policies').value;
+    currentQuote.bank = document.getElementById('f-bank').value;
+    currentQuote.internalNotes = document.getElementById('f-internal-notes').value;
+    if(!currentQuote.payments) currentQuote.payments = [];
+    currentQuote.received = currentQuote.payments.reduce((s,p)=>s+p.amount,0);
+    currentQuote.updatedAt = new Date().toISOString();
+
+    // Calcular totales
+    const totals = calcTotals();
+    currentQuote.subtotal = totals.subtotal;
+    currentQuote.total = totals.grandTotal;
+    currentQuote.balance = totals.grandTotal - currentQuote.received;
+
+    // Guardar / actualizar en el array
+    const idx = quotes.findIndex(q=>q.id===currentQuote.id);
+    if(idx>=0) quotes[idx] = {...currentQuote};
+    else quotes.unshift({...currentQuote});
+
+    localStorage.setItem('wu_quotes', JSON.stringify(quotes));
+    document.getElementById('badge-total').textContent = quotes.length;
+
+    // Auto-registrar cliente si es nuevo
+    if(currentQuote.client.name){
+      const existing = clients.find(c=>c.name.toLowerCase()===currentQuote.client.name.toLowerCase());
+      if(!existing){
+        const newC = {id:Date.now(), ...currentQuote.client, notionPageId:null};
+        clients.unshift(newC);
+        localStorage.setItem('wu_clients', JSON.stringify(clients));
+        updateClientSelect();
+      }
+    }
+
+    // Sync a Cloudflare KV en background
+    syncKV('wu_quotes', quotes);
+    syncKV('wu_clients', clients);
+
+    showToast('✅ Cotización guardada correctamente');
+
+  } catch(err) {
+    console.error('saveQuote error:', err);
+    alert('❌ Error al guardar: ' + err.message + '\n\nRevisa la consola para más detalles.');
+  }
 }
 
 // ══════════════════════════════════════════════════
@@ -1595,47 +1612,87 @@ function printQuote(){
 // ══════════════════════════════════════════════════
 // LISTA DE COTIZACIONES
 // ══════════════════════════════════════════════════
+function sortList(col){
+  if(listSort.col===col) listSort.dir = listSort.dir==='asc'?'desc':'asc';
+  else { listSort.col=col; listSort.dir='asc'; }
+  renderList();
+}
+
 function renderList(){
-  const search=(document.getElementById('search-filter').value||'').toLowerCase();
-  const statusF=document.getElementById('status-filter').value;
-  let filtered=quotes.filter(q=>{
-    const matchSearch=!search||(q.client?.name||'').toLowerCase().includes(search)||(q.num||'').toLowerCase().includes(search);
-    const matchStatus=!statusF||q.status===statusF;
-    return matchSearch&&matchStatus;
+  const searchEl = document.getElementById('search-filter');
+  const statusEl = document.getElementById('status-filter');
+  const search = (searchEl?.value||'').toLowerCase();
+  const statusF = statusEl?.value||'';
+
+  let filtered = quotes.filter(q=>{
+    const matchSearch = !search ||
+      (q.client?.name||'').toLowerCase().includes(search) ||
+      (q.num||'').toLowerCase().includes(search) ||
+      (q.client?.whatsapp||'').includes(search);
+    const matchStatus = !statusF || q.status===statusF;
+    return matchSearch && matchStatus;
   });
 
-  document.getElementById('badge-total').textContent=quotes.length;
+  // Sort
+  filtered.sort((a,b)=>{
+    let va, vb;
+    switch(listSort.col){
+      case 'num':    va=a.num||''; vb=b.num||''; break;
+      case 'client': va=a.client?.name||''; vb=b.client?.name||''; break;
+      case 'status': va=a.status||''; vb=b.status||''; break;
+      case 'date':   va=a.date||''; vb=b.date||''; break;
+      case 'total':  va=a.total||0; vb=b.total||0; break;
+      case 'balance':va=a.balance||0; vb=b.balance||0; break;
+      default:       va=a.date||''; vb=b.date||'';
+    }
+    const cmp = typeof va==='number' ? va-vb : va.localeCompare(vb);
+    return listSort.dir==='asc' ? cmp : -cmp;
+  });
 
-  const wrap=document.getElementById('quote-list-wrap');
+  document.getElementById('badge-total').textContent = quotes.length;
+
+  const wrap = document.getElementById('quote-list-wrap');
   if(filtered.length===0){
-    wrap.innerHTML='<div class="no-data">No hay cotizaciones que coincidan con el filtro.</div>';
+    wrap.innerHTML=`<div class="no-data">${search||statusF ? 'No hay cotizaciones que coincidan.' : 'Aún no tienes cotizaciones.<br>Haz clic en <strong style="color:var(--orange)">+ NUEVA COTIZACIÓN</strong> para empezar.'}</div>`;
     return;
   }
 
+  const arr = s => listSort.col===s ? (listSort.dir==='asc'?'▲':'▼') : '<span style="opacity:.3">⇅</span>';
+  const thStyle = col => `cursor:pointer;user-select:none;${listSort.col===col?'color:var(--orange)':''}`;
+
   wrap.innerHTML=`<table class="quote-table">
     <thead><tr>
-      <th>NÚMERO</th><th>CLIENTE</th><th>TIPO</th><th>ESTADO</th>
-      <th>FECHA</th><th>TOTAL</th><th>BALANCE</th><th>ACCIONES</th>
+      <th onclick="sortList('num')" style="${thStyle('num')}">NÚMERO ${arr('num')}</th>
+      <th onclick="sortList('client')" style="${thStyle('client')}">CLIENTE ${arr('client')}</th>
+      <th>TIPO</th>
+      <th onclick="sortList('status')" style="${thStyle('status')}">ESTADO ${arr('status')}</th>
+      <th onclick="sortList('date')" style="${thStyle('date')}">FECHA ${arr('date')}</th>
+      <th onclick="sortList('total')" style="${thStyle('total')}">TOTAL ${arr('total')}</th>
+      <th onclick="sortList('balance')" style="${thStyle('balance')}">BALANCE ${arr('balance')}</th>
+      <th>ACCIONES</th>
     </tr></thead>
     <tbody>
     ${filtered.map(q=>`
       <tr>
-        <td><span class="qt-num">${q.num}</span></td>
+        <td>
+          <span class="qt-num">${esc(q.num||'—')}</span>
+          ${q.notionPageId?`<div style="font-size:8px;color:var(--green);margin-top:1px">✓ Notion</div>`:''}
+        </td>
         <td>
           <div class="qt-client">${esc(q.client?.name||'—')}</div>
-          <div class="qt-date">${q.client?.service||''} · ${q.client?.phone||''}</div>
+          <div class="qt-date">${q.client?.service||''} ${q.client?.whatsapp?'· '+q.client.whatsapp:''}</div>
         </td>
         <td><span style="font-size:9px;color:var(--gold)">${q.type||'PRESUPUESTO'}</span></td>
         <td><span class="status-badge ${statusClass(q.status)}">${statusLabel(q.status)}</span></td>
         <td><span class="qt-date">${q.date?formatDate(q.date):'—'}</span></td>
         <td><span class="qt-total">RD$${fmtNum(q.total||0)}</span></td>
-        <td><span class="qt-balance" style="color:${(q.balance||0)>0?'var(--danger)':'var(--green)'}">${q.balance>0?'RD$'+fmtNum(q.balance):'✓ Pagado'}</span></td>
+        <td><span class="qt-balance" style="color:${(q.balance||0)>0?'var(--danger)':'var(--green)'}">${(q.balance||0)>0?'RD$'+fmtNum(q.balance):'✓ Pagado'}</span></td>
         <td>
           <div class="qt-actions">
-            <button class="btn btn-outline btn-xs" onclick="editQuote(${q.id})">✏ EDITAR</button>
-            <button class="btn btn-blue btn-xs" onclick="previewQuote(${q.id})">👁</button>
-            <button class="btn btn-green btn-xs" onclick="printQuoteById(${q.id})">🖨</button>
-            <button class="btn btn-danger btn-xs" onclick="deleteQuote(${q.id})">✕</button>
+            <button class="btn btn-outline btn-xs" onclick="editQuote('${q.id}')">✏</button>
+            <button class="btn btn-blue btn-xs" onclick="previewQuote('${q.id}')">👁</button>
+            <button class="btn btn-green btn-xs" onclick="printQuoteById('${q.id}')">🖨</button>
+            <button class="btn btn-danger btn-xs" onclick="deleteQuote('${q.id}')">✕</button>
           </div>
         </td>
       </tr>
@@ -1645,14 +1702,14 @@ function renderList(){
 }
 
 function editQuote(id){
-  const q=quotes.find(x=>x.id===id);
+  const q=quotes.find(x=>String(x.id)===String(id));
   if(!q) return;
   loadQuoteIntoEditor(JSON.parse(JSON.stringify(q)));
   switchTab('editor');
 }
 
 function previewQuote(id){
-  const q=quotes.find(x=>x.id===id);
+  const q=quotes.find(x=>String(x.id)===String(id));
   if(!q) return;
   loadQuoteIntoEditor(JSON.parse(JSON.stringify(q)));
   switchTab('preview');
@@ -1660,7 +1717,7 @@ function previewQuote(id){
 }
 
 function printQuoteById(id){
-  const q=quotes.find(x=>x.id===id);
+  const q=quotes.find(x=>String(x.id)===String(id));
   if(!q) return;
   loadQuoteIntoEditor(JSON.parse(JSON.stringify(q)));
   setTimeout(printQuote,200);
@@ -1668,8 +1725,9 @@ function printQuoteById(id){
 
 function deleteQuote(id){
   if(!confirm('¿Eliminar esta cotización?')) return;
-  quotes=quotes.filter(q=>q.id!==id);
+  quotes=quotes.filter(q=>String(q.id)!==String(id));
   localStorage.setItem('wu_quotes',JSON.stringify(quotes));
+  syncKV('wu_quotes', quotes);
   renderList();
 }
 
@@ -2229,9 +2287,26 @@ document.querySelectorAll('.modal-overlay').forEach(m=>{
 // ══════════════════════════════════════════════════
 function showToast(msg){
   let t=document.getElementById('wu-toast');
-  if(!t){t=document.createElement('div');t.id='wu-toast';t.style.cssText='position:fixed;bottom:20px;right:20px;background:var(--card);border:1px solid var(--orange);color:var(--cream);padding:10px 16px;border-radius:4px;font-size:11px;z-index:9999;transition:opacity .3s';document.body.appendChild(t);}
-  t.textContent=msg;t.style.opacity='1';
-  clearTimeout(t._to);t._to=setTimeout(()=>t.style.opacity='0',2500);
+  if(!t){
+    t=document.createElement('div');
+    t.id='wu-toast';
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#141414;border:2px solid var(--orange);color:var(--cream);padding:12px 24px;border-radius:6px;font-size:13px;z-index:99999;transition:opacity .3s;box-shadow:0 4px 20px rgba(0,0,0,.6);white-space:nowrap;font-family:"DM Mono",monospace;';
+    document.body.appendChild(t);
+  }
+  t.textContent=msg;
+  t.style.opacity='1';
+  clearTimeout(t._to);
+  t._to=setTimeout(()=>t.style.opacity='0',3000);
+}
+
+// Sync a key to Cloudflare KV (fire and forget)
+function syncKV(key, value){
+  const KV = 'https://notion-proxy-wallup.wallupmedia.workers.dev/db';
+  fetch(`${KV}/${key}`, {
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(value)
+  }).catch(()=>{}); // silent fail — localStorage is source of truth
 }
 
 // ══════════════════════════════════════════════════
