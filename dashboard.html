@@ -414,6 +414,30 @@ let currentReportType = 'client';
 let currentReportYear = '2026';
 let currentCommPeriod = 'month';
 
+// Sort states for each table
+let sortRecent    = {col:'date',   dir:'desc'};
+let sortClient    = {col:'total',  dir:'desc'};
+let sortMonth     = {col:'key',    dir:'desc'};
+let sortService   = {col:'total',  dir:'desc'};
+let sortExpenses  = {col:'date',   dir:'desc'};
+let sortComm      = {col:'date',   dir:'desc'};
+
+function sortBy(state, col, renderFn){
+  if(state.col===col) state.dir=state.dir==='asc'?'desc':'asc';
+  else {state.col=col; state.dir='asc';}
+  renderFn();
+}
+function arr(state, col){ return state.col===col?(state.dir==='asc'?'▲':'▼'):'<span style="opacity:.25">⇅</span>'; }
+function thS(state, col){ return `cursor:pointer;user-select:none;white-space:nowrap;${state.col===col?'color:var(--orange)':''}`; }
+function sortRows(rows, col, dir, type='str'){
+  return rows.slice().sort((a,b)=>{
+    let va=a[col]??'', vb=b[col]??'';
+    if(type==='num'){va=Number(va)||0; vb=Number(vb)||0;}
+    const cmp=type==='num'?va-vb:String(va).localeCompare(String(vb));
+    return dir==='asc'?cmp:-cmp;
+  });
+}
+
 // ══════════════════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════════════════
@@ -667,17 +691,23 @@ function drawDoughnut(id, labels, data, colors=null){
 }
 
 function renderRecentTable(fq){
-  const recent=fq.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,10);
-  document.getElementById('recent-count').textContent=`${recent.length} más recientes`;
-  if(recent.length===0){
-    document.getElementById('recent-table').innerHTML='<div class="empty">Sin trabajos en este período.</div>';
-    return;
-  }
+  let rows = fq.slice().map(q=>({...q, clientName:q.client?.name||'—', service:q.client?.service||'—'}));
+  rows = sortRows(rows, sortRecent.col==='client'?'clientName':sortRecent.col, sortRecent.dir, ['total','received','balance'].includes(sortRecent.col)?'num':'str');
+  const recent = rows.slice(0,15);
+  document.getElementById('recent-count').textContent=`${fq.length} trabajo(s) — mostrando ${recent.length}`;
+  if(recent.length===0){document.getElementById('recent-table').innerHTML='<div class="empty">Sin trabajos en este período.</div>';return;}
+
+  const S=sortRecent;
   document.getElementById('recent-table').innerHTML=`
     <table class="data-table">
       <thead><tr>
-        <th>NOMBRE</th><th>CLIENTE</th><th>FECHA</th><th>ESTADO</th>
-        <th class="text-right">TOTAL</th><th class="text-right">RECIBIDO</th><th class="text-right">BALANCE</th>
+        <th onclick="sortBy(sortRecent,'internalName',renderOverview)" style="${thS(S,'internalName')}">NOMBRE ${arr(S,'internalName')}</th>
+        <th onclick="sortBy(sortRecent,'client',renderOverview)" style="${thS(S,'client')}">CLIENTE ${arr(S,'client')}</th>
+        <th onclick="sortBy(sortRecent,'date',renderOverview)" style="${thS(S,'date')}">FECHA ${arr(S,'date')}</th>
+        <th onclick="sortBy(sortRecent,'status',renderOverview)" style="${thS(S,'status')}">ESTADO ${arr(S,'status')}</th>
+        <th onclick="sortBy(sortRecent,'total',renderOverview)" style="${thS(S,'total')} text-align:right">TOTAL ${arr(S,'total')}</th>
+        <th onclick="sortBy(sortRecent,'received',renderOverview)" style="${thS(S,'received')} text-align:right">RECIBIDO ${arr(S,'received')}</th>
+        <th onclick="sortBy(sortRecent,'balance',renderOverview)" style="${thS(S,'balance')} text-align:right">BALANCE ${arr(S,'balance')}</th>
       </tr></thead>
       <tbody>
         ${recent.map(q=>`<tr>
@@ -734,16 +764,21 @@ function renderReportByClient(q, container){
     map[name].count++;
     if(qt.status==='paid') map[name].paid++;
   });
-  const rows=Object.values(map).sort((a,b)=>b.total-a.total);
+  let rows=Object.values(map);
+  const numCols=['total','received','balance','count','paid'];
+  rows=sortRows(rows, sortClient.col, sortClient.dir, numCols.includes(sortClient.col)?'num':'str');
   const grandTotal=rows.reduce((s,r)=>s+r.total,0);
   if(rows.length===0){container.innerHTML='<div class="empty">Sin datos para este período.</div>';return;}
+
+  const S=sortClient;
+  const th=(col,label,right=false)=>`<th onclick="sortBy(sortClient,'${col}',renderReport)" style="${thS(S,col)}${right?';text-align:right':''}">${label} ${arr(S,col)}</th>`;
   container.innerHTML=`
     <table class="data-table">
       <thead><tr>
-        <th>CLIENTE</th><th class="text-center">TRABAJOS</th>
-        <th class="text-right">FACTURADO</th><th class="text-right">RECIBIDO</th>
-        <th class="text-right">PENDIENTE</th><th class="text-right">% DEL TOTAL</th>
-        <th>COMPLETADOS</th>
+        ${th('name','CLIENTE')}${th('count','TRABAJOS',true)}
+        ${th('total','FACTURADO',true)}${th('received','RECIBIDO',true)}
+        ${th('balance','PENDIENTE',true)}<th class="text-right">% TOTAL</th>
+        ${th('paid','COMPLETADOS',true)}
       </tr></thead>
       <tbody>
         ${rows.map(r=>`<tr>
@@ -756,69 +791,68 @@ function renderReportByClient(q, container){
             <span class="${grandTotal>0&&r.total/grandTotal>=.2?'c-orange':'c-gold'}">${grandTotal>0?(r.total/grandTotal*100).toFixed(1):0}%</span>
             <div class="prog-wrap"><div class="prog-bar" style="width:${grandTotal>0?(r.total/grandTotal*100):0}%;background:var(--orange)"></div></div>
           </td>
-          <td><span class="${r.paid===r.count?'c-green':'c-gold'}">${r.paid}/${r.count}</span></td>
+          <td class="text-center"><span class="${r.paid===r.count?'c-green':'c-gold'}">${r.paid}/${r.count}</span></td>
         </tr>`).join('')}
       </tbody>
-      <tfoot>
-        <tr style="background:var(--card2)">
-          <td style="font-family:'Bebas Neue';letter-spacing:1px;color:var(--orange)">TOTALES</td>
-          <td class="text-center mono">${rows.reduce((s,r)=>s+r.count,0)}</td>
-          <td class="mono text-right c-orange">RD$${fmtNum(rows.reduce((s,r)=>s+r.total,0))}</td>
-          <td class="mono text-right c-green">RD$${fmtNum(rows.reduce((s,r)=>s+r.received,0))}</td>
-          <td class="mono text-right c-red">RD$${fmtNum(rows.reduce((s,r)=>s+r.balance,0))}</td>
-          <td></td><td></td>
-        </tr>
-      </tfoot>
-    </table>
-    ${exportBar()}`;
+      <tfoot><tr style="background:var(--card2)">
+        <td style="font-family:'Bebas Neue';letter-spacing:1px;color:var(--orange)">TOTALES</td>
+        <td class="text-center mono">${rows.reduce((s,r)=>s+r.count,0)}</td>
+        <td class="mono text-right c-orange">RD$${fmtNum(rows.reduce((s,r)=>s+r.total,0))}</td>
+        <td class="mono text-right c-green">RD$${fmtNum(rows.reduce((s,r)=>s+r.received,0))}</td>
+        <td class="mono text-right c-red">RD$${fmtNum(rows.reduce((s,r)=>s+r.balance,0))}</td>
+        <td></td><td></td>
+      </tr></tfoot>
+    </table>${exportBar()}`;
 }
 
 function renderReportByMonth(q, container){
   const map={};
   q.forEach(qt=>{
     if(!qt.date) return;
-    const key=qt.date.substring(0,7); // YYYY-MM
+    const key=qt.date.substring(0,7);
     if(!map[key]) map[key]={key,total:0,received:0,balance:0,count:0,gastos:0};
     map[key].total+=qt.total||0;
     map[key].received+=qt.received||0;
     map[key].balance+=qt.balance||0;
     map[key].count++;
   });
-  // Add expenses per month
   expenses.forEach(e=>{
     if(!e.date) return;
     const key=e.date.substring(0,7);
     if(map[key]) map[key].gastos+=e.amount||0;
     else map[key]={key,total:0,received:0,balance:0,count:0,gastos:e.amount||0};
   });
-  const rows=Object.keys(map).sort().reverse().map(k=>map[k]);
+  // Add computed fields
+  const rawRows=Object.values(map).map(r=>({...r, util:r.received-r.gastos, margen:r.received>0?((r.received-r.gastos)/r.received*100):0}));
+  const numCols=['total','received','gastos','util','margen','count'];
+  const sorted=sortRows(rawRows, sortMonth.col, sortMonth.dir, numCols.includes(sortMonth.col)?'num':'str');
   const mNames=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  if(rows.length===0){container.innerHTML='<div class="empty">Sin datos para este período.</div>';return;}
+  if(sorted.length===0){container.innerHTML='<div class="empty">Sin datos para este período.</div>';return;}
+
+  const S=sortMonth;
+  const th=(col,label,right=false)=>`<th onclick="sortBy(sortMonth,'${col}',renderReport)" style="${thS(S,col)}${right?';text-align:right':''}">${label} ${arr(S,col)}</th>`;
   container.innerHTML=`
     <table class="data-table">
       <thead><tr>
-        <th>MES</th><th class="text-center">TRABAJOS</th>
-        <th class="text-right">FACTURADO</th><th class="text-right">RECIBIDO</th>
-        <th class="text-right">GASTOS</th><th class="text-right">UTILIDAD</th><th class="text-right">MARGEN</th>
+        ${th('key','MES')}${th('count','TRABAJOS',true)}
+        ${th('total','FACTURADO',true)}${th('received','RECIBIDO',true)}
+        ${th('gastos','GASTOS',true)}${th('util','UTILIDAD',true)}${th('margen','MARGEN',true)}
       </tr></thead>
       <tbody>
-        ${rows.map(r=>{
+        ${sorted.map(r=>{
           const [y,m]=r.key.split('-');
-          const util=r.received-r.gastos;
-          const margen=r.received>0?(util/r.received*100):0;
           return `<tr>
             <td><span style="color:var(--cream);font-family:'Bebas Neue';letter-spacing:.5px">${mNames[parseInt(m)-1]} ${y}</span></td>
             <td class="text-center c-gold">${r.count}</td>
             <td class="mono text-right c-orange">RD$${fmtNum(r.total)}</td>
             <td class="mono text-right c-green">RD$${fmtNum(r.received)}</td>
             <td class="mono text-right c-blue">RD$${fmtNum(r.gastos)}</td>
-            <td class="mono text-right ${util>=0?'c-green':'c-red'}">RD$${fmtNum(util)}</td>
-            <td class="${margen>=50?'c-green':margen>=30?'c-orange':'c-red'}">${margen.toFixed(1)}%</td>
+            <td class="mono text-right ${r.util>=0?'c-green':'c-red'}">RD$${fmtNum(r.util)}</td>
+            <td class="${r.margen>=50?'c-green':r.margen>=30?'c-orange':'c-red'}">${r.margen.toFixed(1)}%</td>
           </tr>`;
         }).join('')}
       </tbody>
-    </table>
-    ${exportBar()}`;
+    </table>${exportBar()}`;
 }
 
 function renderReportByService(q, container){
@@ -831,19 +865,24 @@ function renderReportByService(q, container){
     map[s].balance+=qt.balance||0;
     map[s].count++;
   });
-  const rows=Object.values(map).sort((a,b)=>b.total-a.total);
-  const grandTotal=rows.reduce((s,r)=>s+r.total,0);
-  if(rows.length===0){container.innerHTML='<div class="empty">Sin datos.</div>';return;}
+  const rawRows=Object.values(map).map(r=>({...r, ticket:r.count>0?r.total/r.count:0}));
+  const grandTotal=rawRows.reduce((s,r)=>s+r.total,0);
+  const numCols=['total','received','balance','count','ticket'];
+  const sorted=sortRows(rawRows, sortService.col, sortService.dir, numCols.includes(sortService.col)?'num':'str');
+  if(sorted.length===0){container.innerHTML='<div class="empty">Sin datos.</div>';return;}
+
+  const S=sortService;
+  const th=(col,label,right=false)=>`<th onclick="sortBy(sortService,'${col}',renderReport)" style="${thS(S,col)}${right?';text-align:right':''}">${label} ${arr(S,col)}</th>`;
   container.innerHTML=`
     <table class="data-table">
       <thead><tr>
-        <th>TIPO DE SERVICIO</th><th class="text-center">TRABAJOS</th>
-        <th class="text-right">FACTURADO</th><th class="text-right">RECIBIDO</th>
-        <th class="text-right">PENDIENTE</th><th class="text-right">PARTICIPACIÓN</th>
-        <th class="text-right">TICKET PROM.</th>
+        ${th('service','TIPO DE SERVICIO')}${th('count','TRABAJOS',true)}
+        ${th('total','FACTURADO',true)}${th('received','RECIBIDO',true)}
+        ${th('balance','PENDIENTE',true)}<th class="text-right">PARTICIPACIÓN</th>
+        ${th('ticket','TICKET PROM.',true)}
       </tr></thead>
       <tbody>
-        ${rows.map(r=>`<tr>
+        ${sorted.map(r=>`<tr>
           <td><span style="color:var(--cream)">${esc(r.service)}</span></td>
           <td class="text-center c-gold">${r.count}</td>
           <td class="mono text-right c-orange">RD$${fmtNum(r.total)}</td>
@@ -853,11 +892,10 @@ function renderReportByService(q, container){
             <span class="c-orange">${grandTotal>0?(r.total/grandTotal*100).toFixed(1):0}%</span>
             <div class="prog-wrap"><div class="prog-bar" style="width:${grandTotal>0?(r.total/grandTotal*100):0}%;background:var(--orange)"></div></div>
           </td>
-          <td class="mono text-right c-gold">RD$${fmtNum(r.count>0?r.total/r.count:0)}</td>
+          <td class="mono text-right c-gold">RD$${fmtNum(r.ticket)}</td>
         </tr>`).join('')}
       </tbody>
-    </table>
-    ${exportBar()}`;
+    </table>${exportBar()}`;
 }
 
 function exportBar(){
@@ -899,10 +937,15 @@ function renderExpenses(){
   const qF=document.getElementById('exp-filter-quote').value;
   let filtered=expenses.filter(e=>{
     if(catF&&e.cat!==catF) return false;
-    if(qF&&e.quoteId!==qF) return false;
+    if(qF&&String(e.quoteId)!==String(qF)) return false;
     return true;
   });
-  filtered.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+
+  const numCols=['amount'];
+  filtered=sortRows(filtered.map(e=>{
+    const q=quotes.find(x=>String(x.id)===String(e.quoteId));
+    return {...e, quoteName:q?q.internalName||q.num||'—':'—'};
+  }), sortExpenses.col, sortExpenses.dir, numCols.includes(sortExpenses.col)?'num':'str');
 
   const total=filtered.reduce((s,e)=>s+(e.amount||0),0);
   document.getElementById('exp-total-display').textContent='RD$'+fmtNum(total);
@@ -910,32 +953,30 @@ function renderExpenses(){
   const wrap=document.getElementById('expenses-table');
   if(filtered.length===0){wrap.innerHTML='<div class="empty">Sin gastos registrados.</div>';return;}
 
+  const S=sortExpenses;
+  const th=(col,label,right=false)=>`<th onclick="sortBy(sortExpenses,'${col}',renderExpenses)" style="${thS(S,col)}${right?';text-align:right':''}">${label} ${arr(S,col)}</th>`;
+
   wrap.innerHTML=`<table class="data-table">
     <thead><tr>
-      <th>FECHA</th><th>CATEGORÍA</th><th>DESCRIPCIÓN</th><th>PROVEEDOR</th>
-      <th>TRABAJO</th><th class="text-right">MONTO</th><th></th>
+      ${th('date','FECHA')}${th('cat','CATEGORÍA')}${th('desc','DESCRIPCIÓN')}
+      ${th('payee','PROVEEDOR')}${th('quoteName','TRABAJO')}${th('amount','MONTO',true)}<th></th>
     </tr></thead>
     <tbody>
-      ${filtered.map(e=>{
-        const q=quotes.find(x=>x.id===e.quoteId||x.id==e.quoteId);
-        return `<tr>
-          <td class="c-gold">${formatDate(e.date)}</td>
-          <td><span class="badge badge-blue">${catLabel(e.cat)}</span></td>
-          <td>${esc(e.desc||'—')}</td>
-          <td class="c-gold">${esc(e.payee||'—')}</td>
-          <td class="c-gold" style="font-size:10px">${q?esc(q.internalName||q.num||'—'):'—'}</td>
-          <td class="mono text-right c-orange">RD$${fmtNum(e.amount)}</td>
-          <td><button class="btn btn-danger btn-xs" onclick="deleteExpense('${e.id}')">✕</button></td>
-        </tr>`;
-      }).join('')}
+      ${filtered.map(e=>`<tr>
+        <td class="c-gold">${formatDate(e.date)}</td>
+        <td><span class="badge badge-blue">${catLabel(e.cat)}</span></td>
+        <td>${esc(e.desc||'—')}</td>
+        <td class="c-gold">${esc(e.payee||'—')}</td>
+        <td class="c-gold" style="font-size:10px">${esc(e.quoteName)}</td>
+        <td class="mono text-right c-orange">RD$${fmtNum(e.amount)}</td>
+        <td><button class="btn btn-danger btn-xs" onclick="deleteExpense('${e.id}')">✕</button></td>
+      </tr>`).join('')}
     </tbody>
-    <tfoot>
-      <tr style="background:var(--card2)">
-        <td colspan="5" style="font-family:'Bebas Neue';letter-spacing:1px;color:var(--orange)">TOTAL</td>
-        <td class="mono text-right c-orange">RD$${fmtNum(total)}</td>
-        <td></td>
-      </tr>
-    </tfoot>
+    <tfoot><tr style="background:var(--card2)">
+      <td colspan="5" style="font-family:'Bebas Neue';letter-spacing:1px;color:var(--orange)">TOTAL</td>
+      <td class="mono text-right c-orange">RD$${fmtNum(total)}</td>
+      <td></td>
+    </tr></tfoot>
   </table>`;
 }
 
@@ -1009,7 +1050,10 @@ function calcCommission(){
 
 function renderCommissions(){
   const {from,to}=getDateRange(currentCommPeriod);
-  const filtered=commissions.filter(c=>inRange(c.date,from,to));
+  let filtered=commissions.filter(c=>inRange(c.date,from,to));
+
+  const numCols=['amount','value'];
+  filtered=sortRows(filtered, sortComm.col, sortComm.dir, numCols.includes(sortComm.col)?'num':'str');
 
   const totalComm=filtered.reduce((s,c)=>s+(c.amount||0),0);
   const totalPend=filtered.filter(c=>c.status==='pending').reduce((s,c)=>s+(c.amount||0),0);
@@ -1035,13 +1079,18 @@ function renderCommissions(){
   const wrap=document.getElementById('comm-table');
   if(filtered.length===0){wrap.innerHTML='<div class="empty">Sin comisiones en este período.<br>Usa el formulario arriba para calcular.</div>';return;}
 
+  const S=sortComm;
+  const th=(col,label,right=false)=>`<th onclick="sortBy(sortComm,'${col}',renderCommissions)" style="${thS(S,col)}${right?';text-align:right':''}">${label} ${arr(S,col)}</th>`;
+
   wrap.innerHTML=`<table class="data-table">
     <thead><tr>
-      <th>COLABORADOR</th><th>ROL</th><th>TRABAJO</th><th>CLIENTE</th>
-      <th>TIPO</th><th class="text-right">COMISIÓN</th><th>ESTADO</th><th></th>
+      ${th('name','COLABORADOR')}${th('role','ROL')}
+      ${th('quoteName','TRABAJO')}${th('clientName','CLIENTE')}
+      ${th('type','TIPO')}${th('amount','COMISIÓN',true)}
+      ${th('status','ESTADO')}<th></th>
     </tr></thead>
     <tbody>
-      ${filtered.slice().reverse().map(c=>`<tr>
+      ${filtered.map(c=>`<tr>
         <td style="color:var(--cream);font-weight:500">${esc(c.name)}</td>
         <td class="c-gold">${esc(c.role)}</td>
         <td style="font-size:10px">${esc(c.quoteName||'—')}</td>
@@ -1051,11 +1100,16 @@ function renderCommissions(){
         <td>
           ${c.status==='paid'
             ? '<span class="badge badge-green">PAGADA</span>'
-            : `<button class="btn btn-green btn-xs" onclick="markCommPaid('${c.id}')">✓ MARCAR PAGADA</button>`}
+            : `<button class="btn btn-green btn-xs" onclick="markCommPaid('${c.id}')">✓ PAGADA</button>`}
         </td>
         <td><button class="btn btn-danger btn-xs" onclick="deleteComm('${c.id}')">✕</button></td>
       </tr>`).join('')}
     </tbody>
+    <tfoot><tr style="background:var(--card2)">
+      <td colspan="5" style="font-family:'Bebas Neue';letter-spacing:1px;color:var(--purple)">TOTAL COMISIONES</td>
+      <td class="mono text-right c-purple">RD$${fmtNum(totalComm)}</td>
+      <td colspan="2"></td>
+    </tr></tfoot>
   </table>`;
 }
 
