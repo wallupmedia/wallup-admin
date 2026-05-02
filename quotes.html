@@ -85,6 +85,7 @@ label.field-lbl{font-size:9px;color:var(--gold);letter-spacing:.8px;display:bloc
 .s-paid{background:rgba(90,184,122,.15);color:var(--green);border:1px solid rgba(90,184,122,.3);}
 .s-draft{background:rgba(160,140,110,.15);color:var(--gold);border:1px solid rgba(160,140,110,.3);}
 .s-sent{background:rgba(90,155,224,.15);color:var(--blue);border:1px solid rgba(90,155,224,.3);}
+.d-none{display:none!important;}
 /* ── GLOBAL NAV ── */
 .gnav{position:fixed;bottom:0;left:0;right:0;background:#0c0c0c;border-top:1px solid var(--border);display:flex;align-items:stretch;height:52px;z-index:1000;padding-bottom:env(safe-area-inset-bottom,0);}
 .gnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:var(--gold);transition:color .15s;font-family:'Bebas Neue';font-size:9px;letter-spacing:1px;}
@@ -179,53 +180,183 @@ body{padding-bottom:58px!important;}
 .preview-panel{background:var(--card2);border-left:1px solid var(--border);padding:20px;overflow-y:auto;}
 .preview-frame{background:#fff;color:#111;border-radius:4px;padding:40px 44px;max-width:800px;margin:0 auto;font-family:'DM Mono',monospace;font-size:11px;box-shadow:0 8px 40px rgba(0,0,0,.6);}
 
-/* Plantilla interna (papel blanco) */
-.pf-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #F59847;}
+/* ═══════════════════════════════════════════
+   PLANTILLA PDF — DISEÑO PREMIUM WALL UP
+═══════════════════════════════════════════ */
+.preview-frame{
+  background:#fff;color:#1a1a1a;border-radius:6px;
+  padding:0;max-width:800px;margin:0 auto;
+  font-family:'DM Mono',monospace;font-size:11px;
+  box-shadow:0 16px 60px rgba(0,0,0,.7);
+  overflow:hidden;
+}
+
+/* Header negro completo */
+.pf-header{
+  background:#0a0a0a;
+  padding:28px 36px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;
+}
+.pf-header::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;
+  height:3px;background:linear-gradient(90deg,#F59847,#A08C6E,#F59847);
+}
 .pf-logo-area{}
-.pf-logo-name{font-family:'Bebas Neue';font-size:26px;letter-spacing:4px;color:#080808;}
-.pf-logo-name span{color:#F59847;}
-.pf-contact{font-size:9px;color:#666;margin-top:4px;line-height:1.8;}
+.pf-contact{font-size:8px;color:#A08C6E;margin-top:6px;line-height:2;letter-spacing:.3px;}
+
+/* Bloque derecho del header */
 .pf-doc-info{text-align:right;}
-.pf-doc-type{font-family:'Bebas Neue';font-size:13px;letter-spacing:3px;color:#A08C6E;margin-bottom:8px;}
-.pf-doc-num{font-family:'Bebas Neue';font-size:32px;letter-spacing:2px;color:#080808;line-height:1;}
-.pf-doc-dates{font-size:9px;color:#666;margin-top:6px;line-height:2;}
-.pf-doc-dates strong{color:#080808;}
+.pf-doc-type{
+  font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:4px;
+  color:#F59847;margin-bottom:4px;opacity:.9;
+}
+.pf-doc-num{
+  font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:3px;
+  color:#ffffff;line-height:1;
+}
+.pf-doc-dates{font-size:8px;color:#A08C6E;margin-top:8px;line-height:2.2;letter-spacing:.3px;}
+.pf-doc-dates strong{color:#F59847;}
+.pf-valid-badge{
+  display:inline-block;background:#F59847;color:#080808;
+  font-size:7px;letter-spacing:2px;padding:2px 8px;border-radius:2px;
+  font-weight:700;margin-top:6px;font-family:'Bebas Neue';
+}
 
-.pf-billing{display:flex;justify-content:space-between;margin-bottom:24px;}
-.pf-billed-to{}
-.pf-billed-lbl{font-size:8px;letter-spacing:2px;color:#A08C6E;text-transform:uppercase;margin-bottom:4px;}
-.pf-client-name{font-family:'Bebas Neue';font-size:18px;letter-spacing:1px;color:#080808;}
-.pf-client-sub{font-size:9px;color:#666;margin-top:2px;line-height:1.7;}
+/* Cuerpo del documento */
+.pf-body{padding:32px 36px;}
 
-.pf-table{width:100%;border-collapse:collapse;margin-bottom:16px;}
-.pf-table thead th{background:#080808;color:#fff;padding:8px 10px;font-family:'Bebas Neue';font-size:10px;letter-spacing:2px;text-align:left;}
+/* Bloque facturado a */
+.pf-billing{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  margin-bottom:28px;padding-bottom:20px;
+  border-bottom:1px solid #f0f0f0;
+}
+.pf-billed-lbl{
+  font-size:7px;letter-spacing:3px;color:#A08C6E;
+  text-transform:uppercase;margin-bottom:6px;font-weight:700;
+}
+.pf-client-name{
+  font-family:'Bebas Neue',sans-serif;font-size:22px;
+  letter-spacing:2px;color:#0a0a0a;margin-bottom:4px;
+}
+.pf-client-sub{font-size:9px;color:#888;line-height:2;}
+
+/* Badge de tipo de servicio */
+.pf-service-badge{
+  display:inline-block;background:#0a0a0a;color:#F59847;
+  font-size:7px;letter-spacing:2px;padding:4px 12px;border-radius:2px;
+  font-family:'Bebas Neue';margin-top:8px;
+}
+
+/* Tabla de productos */
+.pf-table{width:100%;border-collapse:collapse;margin-bottom:0;}
+.pf-table thead th{
+  background:#0a0a0a;color:#F59847;
+  padding:10px 12px;
+  font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:2.5px;
+  text-align:left;border:none;
+}
 .pf-table thead th.r{text-align:right;}
-.pf-table tbody td{padding:10px 10px;border-bottom:1px solid #eee;vertical-align:top;}
+.pf-table tbody tr{transition:background .1s;}
+.pf-table tbody tr:nth-child(even){background:#fafafa;}
+.pf-table tbody td{
+  padding:13px 12px;
+  border-bottom:1px solid #f2f2f2;
+  vertical-align:top;
+}
 .pf-table tbody tr:last-child td{border-bottom:none;}
-.pf-item-name{font-weight:600;font-size:11px;color:#080808;margin-bottom:2px;}
-.pf-item-code{font-size:8px;color:#A08C6E;letter-spacing:1px;}
-.pf-item-desc{font-size:9px;color:#666;margin-top:3px;line-height:1.5;}
-.pf-item-qty{font-size:10px;color:#333;text-align:right;}
-.pf-item-price{font-size:10px;color:#333;text-align:right;}
-.pf-item-total{font-size:11px;font-weight:600;color:#080808;text-align:right;}
 
-.pf-totals{display:flex;justify-content:flex-end;margin-bottom:20px;}
-.pf-totals-box{width:240px;}
-.pf-total-row{display:flex;justify-content:space-between;padding:4px 0;font-size:10px;color:#666;}
-.pf-total-row.main{border-top:2px solid #F59847;margin-top:6px;padding-top:8px;}
-.pf-total-row.main .pf-tl{font-family:'Bebas Neue';font-size:14px;letter-spacing:2px;color:#080808;}
-.pf-total-row.main .pf-tv{font-family:'Bebas Neue';font-size:16px;color:#F59847;}
+/* Group header in table */
+.pf-group-row td{
+  background:#f5f0e8!important;
+  padding:7px 12px!important;
+  border-bottom:1px solid #F59847!important;
+}
+.pf-group-name{
+  font-family:'Bebas Neue',sans-serif;font-size:12px;
+  letter-spacing:2px;color:#0a0a0a;
+}
+.pf-group-sub{font-size:9px;color:#A08C6E;font-family:'DM Mono',monospace;}
 
-.pf-footer-split{display:flex;gap:20px;margin-top:20px;padding-top:20px;border-top:1px solid #eee;}
+.pf-item-name{
+  font-size:11px;font-weight:600;color:#0a0a0a;
+  margin-bottom:3px;letter-spacing:.2px;
+}
+.pf-item-code{
+  display:inline-block;font-size:7px;color:#A08C6E;
+  letter-spacing:1.5px;background:#f5f5f5;
+  padding:1px 5px;border-radius:2px;margin-bottom:3px;
+}
+.pf-item-desc{font-size:8.5px;color:#888;line-height:1.7;margin-top:2px;}
+.pf-item-qty{font-size:9px;color:#555;text-align:right;white-space:nowrap;}
+.pf-item-unit-price{font-size:9px;color:#888;text-align:right;white-space:nowrap;}
+.pf-item-total{font-size:11px;font-weight:700;color:#0a0a0a;text-align:right;white-space:nowrap;}
+
+/* Totales */
+.pf-totals-wrap{background:#fafafa;border-top:1px solid #eee;padding:20px 36px;}
+.pf-totals-inner{display:flex;justify-content:flex-end;}
+.pf-totals-box{width:260px;}
+.pf-total-row{display:flex;justify-content:space-between;padding:5px 0;font-size:9.5px;color:#777;}
+.pf-total-row span:last-child{font-family:'DM Mono',monospace;}
+.pf-total-divider{border:none;border-top:1px solid #eee;margin:6px 0;}
+.pf-total-main{
+  background:#0a0a0a;padding:14px 16px;border-radius:4px;
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:8px;
+}
+.pf-total-main-lbl{
+  font-family:'Bebas Neue',sans-serif;font-size:16px;
+  letter-spacing:3px;color:#F59847;
+}
+.pf-total-main-val{
+  font-family:'DM Mono',monospace;font-size:22px;
+  font-weight:700;color:#ffffff;
+}
+
+/* Footer */
+.pf-footer{padding:24px 36px;border-top:1px solid #f0f0f0;}
+.pf-footer-split{display:flex;gap:28px;}
 .pf-policies{flex:1;}
-.pf-policies-title{font-size:8px;letter-spacing:2px;color:#A08C6E;text-transform:uppercase;margin-bottom:8px;font-weight:600;}
-.pf-policies-text{font-size:8px;color:#666;line-height:1.8;}
-.pf-bank{width:200px;flex-shrink:0;}
-.pf-bank-title{font-size:8px;letter-spacing:2px;color:#A08C6E;text-transform:uppercase;margin-bottom:8px;font-weight:600;}
-.pf-bank-text{font-size:8px;color:#666;line-height:2;}
+.pf-policies-title{
+  font-size:7px;letter-spacing:3px;color:#A08C6E;
+  text-transform:uppercase;margin-bottom:8px;font-weight:700;
+  display:flex;align-items:center;gap:6px;
+}
+.pf-policies-title::after{content:'';flex:1;height:1px;background:#f0f0f0;}
+.pf-policies-text{font-size:7.5px;color:#999;line-height:2;white-space:pre-line;}
+.pf-bank{width:220px;flex-shrink:0;}
+.pf-bank-title{
+  font-size:7px;letter-spacing:3px;color:#A08C6E;
+  text-transform:uppercase;margin-bottom:8px;font-weight:700;
+  display:flex;align-items:center;gap:6px;
+}
+.pf-bank-title::after{content:'';flex:1;height:1px;background:#f0f0f0;}
+.pf-bank-text{font-size:7.5px;color:#999;line-height:2.2;}
+.pf-bank-item{display:flex;justify-content:space-between;font-size:7.5px;padding:2px 0;}
+.pf-bank-label{color:#888;}
+.pf-bank-num{color:#555;font-family:'DM Mono';letter-spacing:.5px;}
 
-.pf-signature{margin-top:24px;padding-top:16px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:flex-end;}
-.pf-sig-line{width:200px;border-top:1px solid #333;padding-top:6px;font-size:8px;color:#666;text-align:center;}
+/* Firma */
+.pf-signature{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  margin-top:20px;padding-top:16px;border-top:1px dashed #eee;
+}
+.pf-sig-block{text-align:center;}
+.pf-sig-line{
+  width:180px;border-top:1px solid #ccc;
+  padding-top:6px;font-size:7.5px;color:#999;text-align:center;
+  letter-spacing:.5px;
+}
+.pf-sig-role{font-size:7px;color:#A08C6E;letter-spacing:1px;margin-top:2px;}
+
+/* Bottom stripe */
+.pf-bottom-stripe{
+  background:#0a0a0a;padding:10px 36px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.pf-bottom-tagline{font-size:7.5px;color:#A08C6E;letter-spacing:1.5px;font-style:italic;}
+.pf-bottom-web{font-size:7.5px;color:#F59847;letter-spacing:1px;}
 
 /* ═══ CLIENTES ═══ */
 .clients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;padding:20px;}
@@ -1560,14 +1691,11 @@ function updateStatus(){
 function toggleEditorCol(col,el){
   edColVis[col]=!edColVis[col];
   el.classList.toggle('on',edColVis[col]);
-  document.querySelectorAll(`.ecol-${col}`).forEach(td=>{
-    td.style.display=edColVis[col]?'':'none';
-  });
-  // Also toggle the header
-  document.querySelectorAll(`th.ecol-${col}`).forEach(th=>{
-    th.style.display=edColVis[col]?'':'none';
-  });
   renderEditorItems();
+  // Toggle headers too
+  document.querySelectorAll(`.ecol-${col}`).forEach(el=>{
+    el.style.display=edColVis[col]?'':'none';
+  });
 }
 
 function toggleModule(mod,el){
@@ -1610,11 +1738,11 @@ function buildPreview(){
           groupSub+=(gi.qty||0)*(gi.unitPrice||0)*(1-((gi.disc||0)/100));
         }
         if(useGroups){
-          rows+=`<tr>
-            <td colspan="4" style="padding:6px 10px 3px;background:#f8f5f0;border-bottom:1px solid #F59847;">
-              <div style="font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;color:#080808;display:flex;justify-content:space-between;align-items:center;">
-                <span>${esc(it.title||'GRUPO')}</span>
-                <span style="color:#A08C6E;font-size:11px;">Subtotal: RD$${fmtNum(groupSub)}</span>
+          rows+=`<tr class="pf-group-row">
+            <td colspan="4">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span class="pf-group-name">${esc(it.title||'GRUPO')}</span>
+                <span class="pf-group-sub">Subtotal: RD$${fmtNum(groupSub)}</span>
               </div>
             </td>
           </tr>`;
@@ -1637,75 +1765,110 @@ function buildPreview(){
     return rows;
   })();
 
+  const serviceType = document.getElementById('f-service-type')?.value||'';
+
   const html=`
   <div class="preview-frame">
+
+    <!-- HEADER NEGRO -->
     <div class="pf-header">
       <div class="pf-logo-area">
-        <img src="https://wallupmedia.github.io/wallup-admin/assets/logo-horizontal-naranja.png" 
-             alt="Wall UP Media" style="height:70px;width:auto;border-radius:6px;">
-        <div class="pf-contact" style="margin-top:6px;">849-268-0042 · wallupmedia@gmail.com · www.wallupmedia.com</div>
+        <img src="https://wallupmedia.github.io/wallup-admin/assets/logo-horizontal-naranja.png"
+             alt="Wall UP Media" style="height:64px;width:auto;">
+        <div class="pf-contact">
+          849-268-0042 &nbsp;·&nbsp; wallupmedia@gmail.com &nbsp;·&nbsp; www.wallupmedia.com
+        </div>
       </div>
       <div class="pf-doc-info">
         <div class="pf-doc-type">${type}</div>
         <div class="pf-doc-num">${num}</div>
         <div class="pf-doc-dates">
-          ${date?`<strong>${formatDate(date)}</strong><br>`:''}
-          ${valid?`Válido hasta: <strong>${formatDate(valid)}</strong>`:''}
+          ${date?`<strong>${formatDate(date)}</strong>`:''}
+          ${valid?`<br>Válido: <strong>${formatDate(valid)}</strong>`:''}
         </div>
       </div>
     </div>
 
-    <div class="pf-billing">
-      <div>
-        <div class="pf-billed-lbl">FACTURADO A</div>
-        <div class="pf-client-name">${esc(clientName)}</div>
-        <div class="pf-client-sub">
-          ${clientPhone?clientPhone+'<br>':''}
-          ${clientEmail?clientEmail:''}
+    <!-- CUERPO -->
+    <div class="pf-body">
+
+      <!-- FACTURADO A -->
+      <div class="pf-billing">
+        <div>
+          <div class="pf-billed-lbl">Facturado a</div>
+          <div class="pf-client-name">${esc(clientName)||'—'}</div>
+          <div class="pf-client-sub">
+            ${clientPhone?`<span>📞 ${esc(clientPhone)}</span><br>`:''}
+            ${clientEmail?`<span>✉ ${esc(clientEmail)}</span>`:''}
+          </div>
+          ${serviceType?`<div class="pf-service-badge">${esc(serviceType)}</div>`:''}
+        </div>
+      </div>
+
+      <!-- TABLA DE ÍTEMS -->
+      <table class="pf-table">
+        <thead>
+          <tr>
+            <th>PRODUCTO / SERVICIO</th>
+            ${edColVis.qty?'<th class="r">CANT.</th>':''}
+            ${edColVis.uprice?'<th class="r">PRECIO UNIT.</th>':''}
+            <th class="r">MONTO</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemRows||'<tr><td colspan="4" style="text-align:center;color:#bbb;padding:28px;font-size:10px;">Sin ítems</td></tr>'}
+        </tbody>
+      </table>
+
+    </div><!-- /pf-body -->
+
+    <!-- TOTALES -->
+    <div class="pf-totals-wrap">
+      <div class="pf-totals-inner">
+        <div class="pf-totals-box">
+          ${t.subtotal!==t.afterDisc?`<div class="pf-total-row"><span>Subtotal</span><span>RD$${fmtNum(t.subtotal)}</span></div>`:''}
+          ${t.globalDisc>0?`<div class="pf-total-row"><span>Descuento ${t.globalDisc}%</span><span style="color:#e05555">-RD$${fmtNum(t.discAmount)}</span></div>`:''}
+          ${edItbis?`<div class="pf-total-row"><span>ITBIS 18%</span><span>RD$${fmtNum(t.itbisAmount)}</span></div>`:''}
+          <div class="pf-total-main">
+            <div class="pf-total-main-lbl">TOTAL</div>
+            <div class="pf-total-main-val">RD$${fmtNum(t.grandTotal)}</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <table class="pf-table">
-      <thead>
-        <tr>
-          <th>PRODUCTO / SERVICIO</th>
-          ${edColVis.qty?'<th class="r">CANT.</th>':''}
-          ${edColVis.uprice?'<th class="r">PRECIO UNIT.</th>':''}
-          <th class="r">MONTO</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${itemRows||'<tr><td colspan="4" style="text-align:center;color:#999;padding:20px">Sin ítems</td></tr>'}
-      </tbody>
-    </table>
-
-    <div class="pf-totals">
-      <div class="pf-totals-box">
-        <div class="pf-total-row"><span>Sub total</span><span>RD$${fmtNum(t.subtotal)}</span></div>
-        ${t.globalDisc>0?`<div class="pf-total-row"><span>Descuento ${t.globalDisc}%</span><span>-RD$${fmtNum(t.discAmount)}</span></div>`:''}
-        ${edItbis?`<div class="pf-total-row"><span>ITBIS 18%</span><span>RD$${fmtNum(t.itbisAmount)}</span></div>`:''}
-        <div class="pf-total-row main"><span class="pf-tl">Total</span><span class="pf-tv">RD$${fmtNum(t.grandTotal)}</span></div>
-      </div>
-    </div>
-
+    <!-- FOOTER -->
     ${(policies||bank)?`
-    <div class="pf-footer-split">
-      ${policies?`<div class="pf-policies">
-        <div class="pf-policies-title">Tenga en cuenta</div>
-        <div class="pf-policies-text" style="white-space:pre-line">${esc(policies)}</div>
-      </div>`:''}
-      ${bank?`<div class="pf-bank">
-        <div class="pf-bank-title">Datos bancarios</div>
-        <div class="pf-bank-text" style="white-space:pre-line">${esc(bank)}</div>
+    <div class="pf-footer">
+      <div class="pf-footer-split">
+        ${policies?`<div class="pf-policies">
+          <div class="pf-policies-title">Tenga en cuenta</div>
+          <div class="pf-policies-text">${esc(policies)}</div>
+        </div>`:''}
+        ${bank?`<div class="pf-bank">
+          <div class="pf-bank-title">Datos bancarios</div>
+          <div class="pf-bank-text">${esc(bank)}</div>
+        </div>`:''}
+      </div>
+      ${modVis.signature?`
+      <div class="pf-signature">
+        <div class="pf-sig-block">
+          <div class="pf-sig-line">John Davis Lopez Martínez</div>
+          <div class="pf-sig-role">WALL UP MEDIA</div>
+        </div>
+        <div style="text-align:right;font-size:7.5px;color:#bbb;font-style:italic;max-width:240px;line-height:1.7;">
+          "Es nuestra responsabilidad cumplir con todo lo ofrecido y<br>
+          entregar con la calidad que nos distingue."
+        </div>
       </div>`:''}
     </div>`:''}
 
-    ${modVis.signature?`
-    <div class="pf-signature">
-      <div class="pf-sig-line">John Davis Lopez Martínez<br>Wall UP Media</div>
-      <div style="text-align:right;font-size:8px;color:#999">Es nuestra responsabilidad cumplir con todo lo<br>ofrecido y entregar con la calidad que nos distingue.</div>
-    </div>`:''}
+    <!-- STRIPE INFERIOR -->
+    <div class="pf-bottom-stripe">
+      <div class="pf-bottom-tagline">para volver a ese momento, cuando quieras.</div>
+      <div class="pf-bottom-web">wallupmedia.com</div>
+    </div>
+
   </div>`;
 
   document.getElementById('preview-container').innerHTML=html;
@@ -1720,46 +1883,66 @@ function printQuote(){
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
     body{background:#fff;font-family:'DM Mono',monospace;}
-    @media print{body{margin:0;} @page{margin:0;}}
-    .preview-frame{padding:32px 36px;max-width:800px;margin:0 auto;font-size:11px;}
-    .pf-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #F59847;}
-    .pf-logo-name{font-family:'Bebas Neue';font-size:24px;letter-spacing:4px;color:#080808;}
-    .pf-logo-name span{color:#F59847;}
-    .pf-contact{font-size:9px;color:#666;margin-top:4px;line-height:1.8;}
+    @media print{body{margin:0;}@page{margin:0;size:A4;}}
+    .preview-frame{max-width:800px;margin:0 auto;font-size:11px;overflow:hidden;}
+    /* Header negro */
+    .pf-header{background:#0a0a0a;padding:24px 32px 20px;display:flex;align-items:center;justify-content:space-between;position:relative;}
+    .pf-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#F59847,#A08C6E,#F59847);}
+    .pf-contact{font-size:8px;color:#A08C6E;margin-top:6px;line-height:2;letter-spacing:.3px;}
     .pf-doc-info{text-align:right;}
-    .pf-doc-type{font-family:'Bebas Neue';font-size:12px;letter-spacing:3px;color:#A08C6E;margin-bottom:6px;}
-    .pf-doc-num{font-family:'Bebas Neue';font-size:28px;letter-spacing:2px;color:#080808;line-height:1;}
-    .pf-doc-dates{font-size:9px;color:#666;margin-top:6px;line-height:2;}
-    .pf-doc-dates strong{color:#080808;}
-    .pf-billing{margin-bottom:20px;}
-    .pf-billed-lbl{font-size:8px;letter-spacing:2px;color:#A08C6E;text-transform:uppercase;margin-bottom:4px;}
-    .pf-client-name{font-family:'Bebas Neue';font-size:17px;letter-spacing:1px;color:#080808;}
-    .pf-client-sub{font-size:9px;color:#666;margin-top:2px;line-height:1.7;}
-    .pf-table{width:100%;border-collapse:collapse;margin-bottom:14px;}
-    .pf-table thead th{background:#080808;color:#fff;padding:7px 10px;font-family:'Bebas Neue';font-size:10px;letter-spacing:2px;text-align:left;}
+    .pf-doc-type{font-family:'Bebas Neue';font-size:9px;letter-spacing:4px;color:#F59847;margin-bottom:4px;}
+    .pf-doc-num{font-family:'Bebas Neue';font-size:32px;letter-spacing:3px;color:#fff;line-height:1;}
+    .pf-doc-dates{font-size:8px;color:#A08C6E;margin-top:8px;line-height:2.2;letter-spacing:.3px;}
+    .pf-doc-dates strong{color:#F59847;}
+    /* Cuerpo */
+    .pf-body{padding:28px 32px;}
+    .pf-billing{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid #f0f0f0;}
+    .pf-billed-lbl{font-size:7px;letter-spacing:3px;color:#A08C6E;text-transform:uppercase;margin-bottom:6px;font-weight:700;}
+    .pf-client-name{font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;color:#0a0a0a;margin-bottom:4px;}
+    .pf-client-sub{font-size:9px;color:#888;line-height:2;}
+    .pf-service-badge{display:inline-block;background:#0a0a0a;color:#F59847;font-size:7px;letter-spacing:2px;padding:4px 10px;border-radius:2px;font-family:'Bebas Neue';margin-top:8px;}
+    /* Tabla */
+    .pf-table{width:100%;border-collapse:collapse;}
+    .pf-table thead th{background:#0a0a0a;color:#F59847;padding:9px 12px;font-family:'Bebas Neue';font-size:8px;letter-spacing:2.5px;text-align:left;border:none;}
     .pf-table thead th.r{text-align:right;}
-    .pf-table tbody td{padding:9px 10px;border-bottom:1px solid #eee;vertical-align:top;}
-    .pf-item-name{font-weight:600;font-size:11px;color:#080808;margin-bottom:2px;}
-    .pf-item-code{font-size:8px;color:#A08C6E;letter-spacing:1px;}
-    .pf-item-desc{font-size:9px;color:#666;margin-top:3px;line-height:1.5;}
-    .pf-item-qty,.pf-item-price{font-size:10px;color:#333;text-align:right;}
-    .pf-item-total{font-size:11px;font-weight:600;color:#080808;text-align:right;}
-    .pf-totals{display:flex;justify-content:flex-end;margin-bottom:16px;}
-    .pf-totals-box{width:220px;}
-    .pf-total-row{display:flex;justify-content:space-between;padding:3px 0;font-size:10px;color:#666;}
-    .pf-total-row.main{border-top:2px solid #F59847;margin-top:6px;padding-top:7px;}
-    .pf-tl{font-family:'Bebas Neue';font-size:14px;letter-spacing:2px;color:#080808;}
-    .pf-tv{font-family:'Bebas Neue';font-size:16px;color:#F59847;}
-    .pf-footer-split{display:flex;gap:20px;margin-top:16px;padding-top:16px;border-top:1px solid #eee;}
-    .pf-policies-title,.pf-bank-title{font-size:8px;letter-spacing:2px;color:#A08C6E;text-transform:uppercase;margin-bottom:6px;font-weight:600;}
-    .pf-policies-text,.pf-bank-text{font-size:8px;color:#666;line-height:1.8;white-space:pre-line;}
-    .pf-bank{width:200px;flex-shrink:0;}
-    .pf-signature{margin-top:20px;padding-top:14px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:flex-end;}
-    .pf-sig-line{width:200px;border-top:1px solid #333;padding-top:5px;font-size:8px;color:#666;text-align:center;}
-  </style></head><body>${content}
-
-<nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html" class="active"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
-</body></html>`);
+    .pf-table tbody tr:nth-child(even){background:#fafafa;}
+    .pf-table tbody td{padding:12px 12px;border-bottom:1px solid #f2f2f2;vertical-align:top;}
+    .pf-table tbody tr:last-child td{border-bottom:none;}
+    .pf-group-row td{background:#f5f0e8!important;padding:7px 12px!important;border-bottom:1px solid #F59847!important;}
+    .pf-group-name{font-family:'Bebas Neue';font-size:12px;letter-spacing:2px;color:#0a0a0a;}
+    .pf-group-sub{font-size:9px;color:#A08C6E;font-family:'DM Mono';}
+    .pf-item-name{font-size:11px;font-weight:600;color:#0a0a0a;margin-bottom:3px;letter-spacing:.2px;}
+    .pf-item-code{display:inline-block;font-size:7px;color:#A08C6E;letter-spacing:1.5px;background:#f5f5f5;padding:1px 5px;border-radius:2px;margin-bottom:3px;}
+    .pf-item-desc{font-size:8px;color:#888;line-height:1.7;margin-top:2px;white-space:pre-line;}
+    .pf-item-qty{font-size:9px;color:#555;text-align:right;white-space:nowrap;}
+    .pf-item-unit-price{font-size:9px;color:#888;text-align:right;white-space:nowrap;}
+    .pf-item-total{font-size:11px;font-weight:700;color:#0a0a0a;text-align:right;white-space:nowrap;}
+    /* Totales */
+    .pf-totals-wrap{background:#fafafa;border-top:1px solid #eee;padding:18px 32px;}
+    .pf-totals-inner{display:flex;justify-content:flex-end;}
+    .pf-totals-box{width:250px;}
+    .pf-total-row{display:flex;justify-content:space-between;padding:4px 0;font-size:9px;color:#777;}
+    .pf-total-row span:last-child{font-family:'DM Mono';}
+    .pf-total-main{background:#0a0a0a;padding:12px 16px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+    .pf-total-main-lbl{font-family:'Bebas Neue';font-size:15px;letter-spacing:3px;color:#F59847;}
+    .pf-total-main-val{font-family:'DM Mono';font-size:20px;font-weight:700;color:#fff;}
+    /* Footer */
+    .pf-footer{padding:20px 32px;border-top:1px solid #f0f0f0;}
+    .pf-footer-split{display:flex;gap:24px;}
+    .pf-policies{flex:1;}
+    .pf-bank{width:210px;flex-shrink:0;}
+    .pf-policies-title,.pf-bank-title{font-size:7px;letter-spacing:3px;color:#A08C6E;text-transform:uppercase;margin-bottom:8px;font-weight:700;display:flex;align-items:center;gap:6px;}
+    .pf-policies-title::after,.pf-bank-title::after{content:'';flex:1;height:1px;background:#f0f0f0;}
+    .pf-policies-text,.pf-bank-text{font-size:7.5px;color:#999;line-height:2;white-space:pre-line;}
+    .pf-signature{display:flex;justify-content:space-between;align-items:flex-end;margin-top:18px;padding-top:14px;border-top:1px dashed #eee;}
+    .pf-sig-block{text-align:center;}
+    .pf-sig-line{width:180px;border-top:1px solid #ccc;padding-top:6px;font-size:7.5px;color:#999;letter-spacing:.5px;}
+    .pf-sig-role{font-size:7px;color:#A08C6E;letter-spacing:1px;margin-top:2px;}
+    /* Bottom stripe */
+    .pf-bottom-stripe{background:#0a0a0a;padding:8px 32px;display:flex;justify-content:space-between;align-items:center;}
+    .pf-bottom-tagline{font-size:7.5px;color:#A08C6E;letter-spacing:1.5px;font-style:italic;}
+    .pf-bottom-web{font-size:7.5px;color:#F59847;letter-spacing:1px;}
+  </style></head><body>${content}</body></html>`);
   w.document.close();
   setTimeout(()=>{w.focus();w.print();},600);
 }
