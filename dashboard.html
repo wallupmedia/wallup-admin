@@ -150,7 +150,7 @@ canvas{width:100%!important;max-height:200px;}
 
 /* Report export button */
 .export-bar{display:flex;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
-</style>
+.gnav{position:fixed;bottom:0;left:0;right:0;background:#0c0c0c;border-top:1px solid #2a2a2a;display:flex;align-items:stretch;height:52px;z-index:1000;padding-bottom:env(safe-area-inset-bottom,0);}.gnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#A08C6E;transition:color .15s;font-family:"Bebas Neue",sans-serif;font-size:9px;letter-spacing:1px;}.gnav a:hover{color:#F0E8DC;}.gnav a.active{color:#F59847;}.gnav a.active .gi{filter:drop-shadow(0 0 5px rgba(245,152,71,.5));}.gnav .gi{font-size:18px;line-height:1;}.gnav .gl{font-size:8px;letter-spacing:1.5px;}</style>
 </head>
 <body>
 
@@ -1165,7 +1165,8 @@ function exportReportPDF(){
   <body>
     <h1>WALL UP MEDIA — REPORTE ${currentReportYear}</h1>
     ${content}
-  </body></html>`);
+  <nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html" class="active"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
+</body></html>`);
   w.document.close();
   setTimeout(()=>{w.focus();w.print();},600);
 }
