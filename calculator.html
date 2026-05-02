@@ -341,7 +341,7 @@ header{
 <body>
 
 <header>
-  <div class="logo">WALL <span>UP</span> MEDIA</div>
+  <img src="assets/logo-horizontal-naranja.png" alt="Wall UP Media" style="height:32px;width:auto;border-radius:4px;">
   <div class="header-right">
     <span class="version">ADMIN · FASE 1 · CALCULADORA</span>
     <button class="btn btn-outline btn-sm" onclick="exportCatalogXLSX()">↓ EXPORTAR CATÁLOGO</button>
@@ -353,6 +353,7 @@ header{
   <div class="tab active" onclick="switchTab('builder')">🧮 CALCULADORA</div>
   <div class="tab" onclick="switchTab('catalog')">📦 CATÁLOGO</div>
   <div class="tab" onclick="switchTab('compare')">📊 COMPARADOR</div>
+  <div class="tab" onclick="switchTab('expenses')">💸 GASTOS</div>
 </div>
 
 <!-- ═══ CALCULADORA ═══ -->
@@ -581,6 +582,11 @@ header{
   </div>
 </div>
 
+<!-- ═══ GASTOS ═══ -->
+<div class="view-full" id="tab-expenses">
+  <!-- rendered by renderExpensesTab() -->
+</div>
+
 <script>
 // ════════════════════════════════════════════════
 // CATÁLOGO POR DEFECTO — Artículos unitarios Wall UP
@@ -648,13 +654,14 @@ let colVis = {code:true, desc:true, qty:true, unit:true, disc:false, total:true}
 // ════════════════════════════════════════════
 function switchTab(tab){
   document.querySelectorAll('.tab').forEach((t,i)=>{
-    t.classList.toggle('active', ['builder','catalog','compare'][i]===tab);
+    t.classList.toggle('active', ['builder','catalog','compare','expenses'][i]===tab);
   });
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.view-full').forEach(v=>v.classList.remove('active'));
   if(tab==='builder') document.getElementById('tab-builder').classList.add('active');
   else if(tab==='catalog'){document.getElementById('tab-catalog').classList.add('active');renderEditor();}
   else if(tab==='compare'){document.getElementById('tab-compare').classList.add('active');renderCompare();}
+  else if(tab==='expenses'){document.getElementById('tab-expenses').classList.add('active');renderExpensesTab();}
 }
 
 // ════════════════════════════════════════════
@@ -855,19 +862,19 @@ function recalculate(){
   let itbisAmount = itbisOn ? afterGlobalDisc*0.18 : 0;
   let grandTotal = afterGlobalDisc + itbisAmount;
   let totalCost = comboItems.reduce((s,it)=> s + it.qty*(it.cost||0), 0);
+  // Include combo expenses in cost
+  const totalExpenses = (comboExpenses||[]).reduce((s,e)=>s+(e.amount||0), 0);
+  const realCost = totalCost + totalExpenses;
 
   // PRECIO SUGERIDO = total del combo + margen objetivo %
-  // Fórmula: total / (1 - margen%) para que el margen sea sobre el precio de venta
   let suggested = targetMargin > 0
     ? Math.round((grandTotal / (1 - targetMargin/100)) / 100) * 100
     : grandTotal;
 
-  // Actualizar placeholder del campo editable
   if(!userEnteredPrice && comboItems.length>0){
     customPriceInput.placeholder = 'RD$'+fmtNum(suggested);
   }
 
-  // Precio efectivo para rentabilidad
   const effectivePrice = userEnteredPrice || suggested;
 
   // Footer
@@ -882,18 +889,21 @@ function recalculate(){
   document.getElementById('m-count').textContent=comboItems.length;
   document.getElementById('m-subtotal').textContent='RD$'+fmtNum(subtotal);
   document.getElementById('m-total').textContent='RD$'+fmtNum(grandTotal);
-  document.getElementById('m-cost').textContent='RD$'+fmtNum(totalCost);
+  document.getElementById('m-cost').textContent=
+    totalExpenses>0
+      ? `RD$${fmtNum(realCost)} (mat. RD$${fmtNum(totalCost)} + gastos RD$${fmtNum(totalExpenses)})`
+      : 'RD$'+fmtNum(totalCost);
   document.getElementById('m-suggested').textContent='RD$'+fmtNum(suggested);
   document.getElementById('m-suggested-sub').textContent=
     `total (${fmtNum(grandTotal)}) + ${targetMargin}% ganancia`;
 
-  // Rentabilidad
+  // Rentabilidad — usa costo real (materiales + gastos internos)
   if(comboItems.length>0){
-    const profit=effectivePrice-grandTotal;
+    const profit=effectivePrice-grandTotal-totalExpenses;
     const margin=effectivePrice>0?(profit/effectivePrice*100):0;
-    const roi=grandTotal>0?profit/grandTotal*100:0;
+    const roi=(grandTotal+totalExpenses)>0?profit/(grandTotal+totalExpenses)*100:0;
     const profitEl=document.getElementById('m-profit');
-    profitEl.textContent='RD$'+fmtNum(profit);
+    profitEl.textContent='RD$'+fmtNum(profit)+(totalExpenses>0?` (inc. gastos)`:'');
     profitEl.className='metric-val '+(profit>=0?'green':'red');
     const marginEl=document.getElementById('m-margin');
     marginEl.textContent=margin.toFixed(1)+'%';
@@ -1179,10 +1189,181 @@ function fmtNum(n){return Number(n||0).toLocaleString('es-DO',{minimumFractionDi
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 // ════════════════════════════════════════════
+// GASTOS — Catálogo de gastos con precios
+// ════════════════════════════════════════════
+const DEFAULT_EXPENSE_CATALOG = [
+  {id:'ec1', name:'Fotógrafo 2do (medio día 4h)',   cat:'Subcontratación', unit:'evento', price:5000},
+  {id:'ec2', name:'Fotógrafo 2do (día completo 8h)',cat:'Subcontratación', unit:'evento', price:8000},
+  {id:'ec3', name:'Camarógrafo 2do (medio día)',    cat:'Subcontratación', unit:'evento', price:6000},
+  {id:'ec4', name:'Camarógrafo 2do (día completo)', cat:'Subcontratación', unit:'evento', price:10000},
+  {id:'ec5', name:'Asistente / Staff',              cat:'Subcontratación', unit:'evento', price:3000},
+  {id:'ec6', name:'Editor externo (video)',          cat:'Subcontratación', unit:'proyecto', price:8000},
+  {id:'ec7', name:'Editor externo (foto)',           cat:'Subcontratación', unit:'proyecto', price:4000},
+  {id:'ec8', name:'Álbum 6x8',                      cat:'Material', unit:'unidad', price:2700},
+  {id:'ec9', name:'Álbum 8x10',                     cat:'Material', unit:'unidad', price:3450},
+  {id:'ec10',name:'Álbum 10x12',                    cat:'Material', unit:'unidad', price:4500},
+  {id:'ec11',name:'Caja madera 8x10',               cat:'Material', unit:'unidad', price:700},
+  {id:'ec12',name:'Caja Pro 8x10',                  cat:'Material', unit:'unidad', price:950},
+  {id:'ec13',name:'USB personalizado',              cat:'Material', unit:'unidad', price:400},
+  {id:'ec14',name:'Gasolina / Transporte',          cat:'Transporte', unit:'evento', price:1500},
+  {id:'ec15',name:'Alquiler lente extra',           cat:'Equipo', unit:'día', price:2000},
+  {id:'ec16',name:'Alquiler drone externo',         cat:'Equipo', unit:'día', price:3000},
+];
+
+let expenseCatalog = JSON.parse(localStorage.getItem('wu_expense_catalog') || 'null') || JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATALOG));
+let comboExpenses  = []; // gastos del combo actual
+
+function saveExpenseCatalog(){
+  localStorage.setItem('wu_expense_catalog', JSON.stringify(expenseCatalog));
+  syncExpenseCatalogKV();
+}
+
+function syncExpenseCatalogKV(){
+  const KV='https://notion-proxy-wallup.wallupmedia.workers.dev/db';
+  fetch(`${KV}/wu_expense_catalog`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(expenseCatalog)}).catch(()=>{});
+}
+
+// ── Render expenses tab ──
+function renderExpensesTab(){
+  const cat = expenseCatalog;
+  const groups = {};
+  cat.forEach(e=>{ if(!groups[e.cat]) groups[e.cat]=[]; groups[e.cat].push(e); });
+
+  const comboTotal = comboExpenses.reduce((s,e)=>s+(e.amount||0), 0);
+  const comboSect = comboExpenses.length > 0 ? `
+    <div style="background:var(--card2);border:1px solid var(--orange);border-radius:4px;padding:12px;margin-bottom:16px;">
+      <div style="font-family:'Bebas Neue';letter-spacing:2px;font-size:13px;color:var(--orange);margin-bottom:8px;">GASTOS DEL COMBO ACTUAL</div>
+      ${comboExpenses.map(e=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="flex:1;font-size:10px;color:var(--cream)">${esc(e.name)}</span>
+          <span style="font-family:'DM Mono';font-size:11px;color:var(--orange)">RD$${fmtNum(e.amount)}</span>
+          <button style="background:none;border:none;color:var(--border2);cursor:pointer;font-size:14px;" onclick="removeComboExpense('${e.uid}')">✕</button>
+        </div>`).join('')}
+      <div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:4px;">
+        <span style="font-size:10px;color:var(--gold)">TOTAL GASTOS</span>
+        <span style="font-family:'DM Mono';font-size:13px;color:var(--orange)">RD$${fmtNum(comboTotal)}</span>
+      </div>
+    </div>` : '';
+
+  document.getElementById('tab-expenses').innerHTML = `
+    <div style="padding:20px;max-width:900px;margin:0 auto;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <h2 style="font-family:'Bebas Neue';letter-spacing:3px;font-size:22px;">CATÁLOGO DE GASTOS</h2>
+        <span style="font-size:10px;color:var(--gold)">${cat.length} artículos</span>
+        <button class="btn btn-orange btn-sm" style="margin-left:auto" onclick="addExpenseCatalogItem()">+ NUEVO GASTO</button>
+        <button class="btn btn-outline btn-sm" onclick="resetExpenseCatalog()">↺ RESTAURAR</button>
+      </div>
+
+      ${comboSect}
+
+      <div style="font-size:10px;color:var(--gold);margin-bottom:10px;">
+        💡 Haz clic en <strong style="color:var(--orange)">+ AGREGAR AL COMBO</strong> para registrar el gasto en el combo activo (no aparece en la cotización del cliente)
+      </div>
+
+      ${Object.entries(groups).map(([grp, items])=>`
+        <div style="margin-bottom:16px;">
+          <div style="font-family:'Bebas Neue';letter-spacing:2px;font-size:11px;color:var(--orange);padding:6px 0;border-bottom:1px solid var(--border);margin-bottom:6px;">${grp}</div>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;">
+            <thead><tr>
+              <th style="background:var(--card2);padding:6px 8px;text-align:left;font-family:'Bebas Neue';letter-spacing:1px;font-size:9px;color:var(--gold);border-bottom:1px solid var(--border)">NOMBRE</th>
+              <th style="background:var(--card2);padding:6px 8px;text-align:left;font-family:'Bebas Neue';letter-spacing:1px;font-size:9px;color:var(--gold);border-bottom:1px solid var(--border);width:80px">UNIDAD</th>
+              <th style="background:var(--card2);padding:6px 8px;text-align:right;font-family:'Bebas Neue';letter-spacing:1px;font-size:9px;color:var(--gold);border-bottom:1px solid var(--border);width:120px">PRECIO RD$</th>
+              <th style="background:var(--card2);padding:6px 8px;border-bottom:1px solid var(--border);width:160px"></th>
+            </tr></thead>
+            <tbody>
+              ${items.map(e=>`
+                <tr style="border-bottom:1px solid var(--border);" onmouseover="this.style.background='rgba(255,255,255,.02)'" onmouseout="this.style.background=''">
+                  <td style="padding:7px 8px;">
+                    <input style="background:transparent;border:none;color:var(--cream);font-family:'DM Mono';font-size:11px;width:100%;outline:none;" 
+                      value="${esc(e.name)}" onchange="updateExpCat('${e.id}','name',this.value)">
+                  </td>
+                  <td style="padding:7px 8px;">
+                    <input style="background:transparent;border:none;color:var(--gold);font-family:'DM Mono';font-size:10px;width:70px;outline:none;"
+                      value="${esc(e.unit)}" onchange="updateExpCat('${e.id}','unit',this.value)">
+                  </td>
+                  <td style="padding:7px 8px;text-align:right;">
+                    <input style="background:transparent;border:none;color:var(--orange);font-family:'DM Mono';font-size:12px;width:100px;text-align:right;outline:none;"
+                      type="number" value="${e.price}" onchange="updateExpCat('${e.id}','price',parseFloat(this.value)||0)">
+                  </td>
+                  <td style="padding:7px 8px;">
+                    <div style="display:flex;gap:4px;justify-content:flex-end;">
+                      <button class="btn btn-orange btn-xs" onclick="addExpToCombo('${e.id}')">+ AL COMBO</button>
+                      <button class="btn btn-danger btn-xs" onclick="deleteExpCat('${e.id}')">✕</button>
+                    </div>
+                  </td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`).join('')}
+
+      <button class="btn btn-orange" onclick="saveExpenseCatalog()" style="margin-top:8px">💾 GUARDAR CATÁLOGO</button>
+    </div>`;
+}
+
+function updateExpCat(id, field, val){
+  const e=expenseCatalog.find(x=>x.id===id);
+  if(e) e[field]=val;
+}
+
+function deleteExpCat(id){
+  if(!confirm('¿Eliminar este gasto del catálogo?')) return;
+  expenseCatalog=expenseCatalog.filter(e=>e.id!==id);
+  renderExpensesTab();
+}
+
+function addExpenseCatalogItem(){
+  const maxId=expenseCatalog.reduce((m,e)=>Math.max(m,parseInt(e.id.replace('ec',''))||0),0);
+  expenseCatalog.push({id:'ec'+(maxId+1),name:'Nuevo gasto',cat:'Otro',unit:'evento',price:0});
+  renderExpensesTab();
+}
+
+function addExpToCombo(catalogId){
+  const e=expenseCatalog.find(x=>x.id===catalogId);
+  if(!e) return;
+  comboExpenses.push({uid:'CE-'+Date.now()+Math.random(), catalogId:e.id, name:e.name, amount:e.price});
+  renderExpensesTab();
+  // Update profitability in metrics
+  recalculate();
+  showToastCalc(`✅ "${e.name}" agregado a gastos del combo`);
+}
+
+function removeComboExpense(uid){
+  comboExpenses=comboExpenses.filter(e=>e.uid!==uid);
+  renderExpensesTab();
+  recalculate();
+}
+
+function resetExpenseCatalog(){
+  if(!confirm('¿Restaurar el catálogo de gastos original?')) return;
+  expenseCatalog=JSON.parse(JSON.stringify(DEFAULT_EXPENSE_CATALOG));
+  localStorage.removeItem('wu_expense_catalog');
+  renderExpensesTab();
+}
+
+function showToastCalc(msg){
+  let t=document.getElementById('wu-toast-calc');
+  if(!t){t=document.createElement('div');t.id='wu-toast-calc';t.style.cssText='position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#141414;border:2px solid var(--orange);color:var(--cream);padding:10px 20px;border-radius:6px;font-size:12px;z-index:99999;transition:opacity .3s;box-shadow:0 4px 20px rgba(0,0,0,.6);font-family:"DM Mono",monospace;white-space:nowrap;';document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._to);t._to=setTimeout(()=>t.style.opacity='0',2500);
+}
+
+// ════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════
 buildCatalog();
 recalculate();
+
+// Also load expense catalog from KV if available
+(async function(){
+  try{
+    const r=await fetch('https://notion-proxy-wallup.wallupmedia.workers.dev/db/wu_expense_catalog');
+    const t=await r.text();
+    if(t&&t!=='null'){
+      expenseCatalog=JSON.parse(t);
+      localStorage.setItem('wu_expense_catalog',t);
+    }
+  }catch{}
+})();
 </script>
 <nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html" class="active"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
 </body>
