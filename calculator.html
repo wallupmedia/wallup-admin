@@ -336,7 +336,20 @@ header{
 }
 .import-zone:hover,.import-zone.drag{border-color:var(--orange);color:var(--cream);}
 .import-zone input{display:none;}
-.gnav{position:fixed;bottom:0;left:0;right:0;background:#0c0c0c;border-top:1px solid #2a2a2a;display:flex;align-items:stretch;height:52px;z-index:1000;padding-bottom:env(safe-area-inset-bottom,0);}.gnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#A08C6E;transition:color .15s;font-family:"Bebas Neue",sans-serif;font-size:9px;letter-spacing:1px;}.gnav a:hover{color:#F0E8DC;}.gnav a.active{color:#F59847;}.gnav a.active .gi{filter:drop-shadow(0 0 5px rgba(245,152,71,.5));}.gnav .gi{font-size:18px;line-height:1;}.gnav .gl{font-size:8px;letter-spacing:1.5px;}</style>
+.gnav{position:fixed;bottom:0;left:0;right:0;background:#0c0c0c;border-top:1px solid #2a2a2a;display:flex;align-items:stretch;height:52px;z-index:1000;padding-bottom:env(safe-area-inset-bottom,0);}.gnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#A08C6E;transition:color .15s;font-family:"Bebas Neue",sans-serif;font-size:9px;letter-spacing:1px;}.gnav a:hover{color:#F0E8DC;}.gnav a.active{color:#F59847;}.gnav a.active .gi{filter:drop-shadow(0 0 5px rgba(245,152,71,.5));}.gnav .gi{font-size:18px;line-height:1;}.gnav .gl{font-size:8px;letter-spacing:1.5px;}
+@media(max-width:768px){
+  .main{flex-direction:column;}
+  .catalog{width:100%;min-width:unset;height:auto;max-height:40vh;border-right:none;border-bottom:1px solid #2a2a2a;}
+  .catalog-panel{width:100%;min-width:unset;height:auto;max-height:35vh;}
+  .builder-panel{height:auto;}
+  .metrics-panel{width:100%;min-width:unset;height:auto;border-left:none;border-top:1px solid #2a2a2a;}
+  .tabs{overflow-x:auto;flex-wrap:nowrap;}
+  .tab{white-space:nowrap;font-size:10px;padding:5px 10px;}
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .gnav .gl{display:none;}
+  .gnav a{width:44px;}
+}
+</style>
 </head>
 <body>
 
