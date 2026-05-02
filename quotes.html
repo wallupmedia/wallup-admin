@@ -86,33 +86,7 @@ label.field-lbl{font-size:9px;color:var(--gold);letter-spacing:.8px;display:bloc
 .s-draft{background:rgba(160,140,110,.15);color:var(--gold);border:1px solid rgba(160,140,110,.3);}
 .s-sent{background:rgba(90,155,224,.15);color:var(--blue);border:1px solid rgba(90,155,224,.3);}
 .d-none{display:none!important;}
-/* ── GLOBAL NAV ── */
-/* ── NAV PILL FLOTANTE ── */
-.gnav{
-  position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
-  background:rgba(14,14,14,0.96);
-  border:1px solid rgba(245,152,71,0.25);
-  border-radius:50px;
-  display:flex;align-items:center;
-  height:46px;padding:0 6px;
-  z-index:9000;
-  backdrop-filter:blur(12px);
-  box-shadow:0 4px 24px rgba(0,0,0,0.7),0 0 0 1px rgba(245,152,71,0.08);
-  gap:2px;
-}
-.gnav a{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  width:56px;height:36px;border-radius:40px;
-  text-decoration:none;color:#A08C6E;
-  transition:all .2s;font-family:'Bebas Neue';font-size:8px;letter-spacing:1.5px;
-  gap:1px;
-}
-.gnav a:hover:not(.active){background:rgba(255,255,255,0.05);color:var(--cream);}
-.gnav a.active{background:rgba(245,152,71,0.15);color:#F59847;}
-.gnav a.active .gi{filter:drop-shadow(0 0 6px rgba(245,152,71,0.6));}
-.gnav .gi{font-size:16px;line-height:1;}
-.gnav .gl{font-size:7px;letter-spacing:1.5px;}
-body{padding-bottom:70px!important;}
+
 
 .qt-num{font-family:'Bebas Neue';letter-spacing:1px;color:var(--orange);font-size:13px;}
 .qt-client{color:var(--cream);font-size:11px;}
@@ -435,13 +409,23 @@ body{padding-bottom:70px!important;}
   .gnav .gl{display:none;}
   .gnav a{width:44px;}
 }
+/* ── NAV PILL ── */
+.gnav{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(12,12,12,0.97);border:1px solid rgba(245,152,71,0.3);border-radius:50px;display:flex;align-items:center;height:46px;padding:0 6px;z-index:9999;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 4px 28px rgba(0,0,0,0.8),0 0 0 1px rgba(245,152,71,0.05);gap:2px;}
+.gnav a{display:flex;flex-direction:column;align-items:center;justify-content:center;width:56px;height:36px;border-radius:40px;text-decoration:none;color:#A08C6E;transition:all .2s;font-family:'Bebas Neue',sans-serif;font-size:8px;letter-spacing:1.5px;gap:1px;}
+.gnav a:hover:not(.active){background:rgba(255,255,255,0.06);color:#F0E8DC;}
+.gnav a.active{background:rgba(245,152,71,0.18);color:#F59847;}
+.gnav a.active .gi{filter:drop-shadow(0 0 6px rgba(245,152,71,0.6));}
+.gnav .gi{font-size:17px;line-height:1;}
+.gnav .gl{font-size:7px;letter-spacing:1.5px;}
+@media(max-width:480px){.gnav .gl{display:none;}.gnav a{width:48px;}}
+body{padding-bottom:72px!important;}
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <header>
-  <div style="display:flex;align-items:center;gap:10px;"><img src="assets/logo-horizontal-naranja.png" alt="Wall UP Media" style="height:32px;width:auto;border-radius:4px;"><span style="font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;color:var(--gold);">COTIZACIONES</span></div>
+  <div style="display:flex;align-items:center;gap:10px;"><img src="assets/logo-horizontal.png" alt="Wall UP Media" style="height:32px;width:auto;border-radius:4px;"><span style="font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;color:var(--gold);">COTIZACIONES</span></div>
   <div class="hdr-right">
     <div class="notion-status" id="notion-status" onclick="switchTab('notion')">
       <div class="dot"></div>
@@ -1810,7 +1794,7 @@ function buildPreview(){
     <!-- HEADER NEGRO -->
     <div class="pf-header">
       <div class="pf-logo-area">
-        <img src="https://wallupmedia.github.io/wallup-admin/assets/logo-horizontal-naranja.png"
+        <img src="https://wallupmedia.github.io/wallup-admin/assets/logo-horizontal.png"
              alt="Wall UP Media" style="height:60px;width:auto;">
         <div class="pf-contact">
           <span style="color:#F59847">📞</span> 849-268-0042 &nbsp;&nbsp;
@@ -2659,7 +2643,9 @@ function getPrintHTML(content){
     .pf-bottom-stripe{background:#0a0a0a;padding:10px 30px;display:flex;justify-content:space-between;align-items:center;}
     .pf-bottom-tagline{font-size:8px;color:#A08C6E;letter-spacing:1.5px;font-style:italic;}
     .pf-bottom-web{font-size:8px;color:#F59847;letter-spacing:1px;}
-  </style></head><body>${content}</body></html>`;
+  </style></head><body>${content}
+<nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html" class="active"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
+</body></html>`;
 }
 
 function copyWhatsApp(){
@@ -3042,5 +3028,7 @@ function statusToNotion(s){return{draft:'Total pendiente',sent:'Total pendiente'
   }
 })();
 </script>
+
+<nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html" class="active"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
 </body>
 </html>
