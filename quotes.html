@@ -1942,7 +1942,9 @@ function printQuote(){
     .pf-bottom-stripe{background:#0a0a0a;padding:8px 32px;display:flex;justify-content:space-between;align-items:center;}
     .pf-bottom-tagline{font-size:7.5px;color:#A08C6E;letter-spacing:1.5px;font-style:italic;}
     .pf-bottom-web{font-size:7.5px;color:#F59847;letter-spacing:1px;}
-  </style></head><body>${content}</body></html>`);
+  </style></head><body>${content}
+<nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html" class="active"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
+</body></html>`);
   w.document.close();
   setTimeout(()=>{w.focus();w.print();},600);
 }
