@@ -150,7 +150,7 @@ canvas{width:100%!important;max-height:200px;}
 
 /* Report export button */
 .export-bar{display:flex;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
-.gnav{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(14,14,14,0.96);border:1px solid rgba(245,152,71,0.25);border-radius:50px;display:flex;align-items:center;height:46px;padding:0 6px;z-index:9000;backdrop-filter:blur(12px);box-shadow:0 4px 24px rgba(0,0,0,0.7);gap:2px;}.gnav a{display:flex;flex-direction:column;align-items:center;justify-content:center;width:56px;height:36px;border-radius:40px;text-decoration:none;color:#A08C6E;transition:all .2s;font-family:'Bebas Neue',sans-serif;font-size:8px;letter-spacing:1.5px;gap:1px;}.gnav a:hover:not(.active){background:rgba(255,255,255,0.05);color:#F0E8DC;}.gnav a.active{background:rgba(245,152,71,0.15);color:#F59847;}.gnav a.active .gi{filter:drop-shadow(0 0 6px rgba(245,152,71,0.6));}.gnav .gi{font-size:16px;line-height:1;}.gnav .gl{font-size:7px;letter-spacing:1.5px;}body{padding-bottom:76px!important;}
+body{padding-bottom:76px!important;}
 @media(max-width:768px){
   .kpi-grid{grid-template-columns:repeat(2,1fr);}
   .charts-grid{grid-template-columns:1fr;}
@@ -170,12 +170,22 @@ canvas{width:100%!important;max-height:200px;}
   .gnav .gl{display:none;}
   .gnav a{width:44px;}
 }
+/* ── NAV PILL ── */
+.gnav{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(12,12,12,0.97);border:1px solid rgba(245,152,71,0.3);border-radius:50px;display:flex;align-items:center;height:46px;padding:0 6px;z-index:9999;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 4px 28px rgba(0,0,0,0.8),0 0 0 1px rgba(245,152,71,0.05);gap:2px;}
+.gnav a{display:flex;flex-direction:column;align-items:center;justify-content:center;width:56px;height:36px;border-radius:40px;text-decoration:none;color:#A08C6E;transition:all .2s;font-family:'Bebas Neue',sans-serif;font-size:8px;letter-spacing:1.5px;gap:1px;}
+.gnav a:hover:not(.active){background:rgba(255,255,255,0.06);color:#F0E8DC;}
+.gnav a.active{background:rgba(245,152,71,0.18);color:#F59847;}
+.gnav a.active .gi{filter:drop-shadow(0 0 6px rgba(245,152,71,0.6));}
+.gnav .gi{font-size:17px;line-height:1;}
+.gnav .gl{font-size:7px;letter-spacing:1.5px;}
+@media(max-width:480px){.gnav .gl{display:none;}.gnav a{width:48px;}}
+body{padding-bottom:72px!important;}
 </style>
 </head>
 <body>
 
 <header>
-  <div style="display:flex;align-items:center;gap:10px;"><img src="assets/logo-horizontal-naranja.png" alt="Wall UP Media" style="height:32px;width:auto;border-radius:4px;"><span style="font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;color:var(--gold);">DASHBOARD</span></div>
+  <div style="display:flex;align-items:center;gap:10px;"><img src="assets/logo-horizontal.png" alt="Wall UP Media" style="height:32px;width:auto;border-radius:4px;"><span style="font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;color:var(--gold);">DASHBOARD</span></div>
   <div class="hdr-right">
     <span style="font-size:9px;color:var(--gold);" id="hdr-period">—</span>
     <a class="back-btn" href="index.html">← INICIO</a>
@@ -1221,6 +1231,8 @@ function exportReportPDF(){
   </div>
   <div class="pipeline-board" id="pipeline-board"></div>
 </div>
+
+
 <nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html" class="active"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
 </body></html>`);
   w.document.close();
@@ -1356,5 +1368,7 @@ function populateSelects(){
   document.querySelector('.period-btn').parentElement.children[1].classList.add('active');
 })();
 </script>
+
+<nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html" class="active"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
 </body>
 </html>
