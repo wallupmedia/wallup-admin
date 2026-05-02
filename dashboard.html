@@ -181,9 +181,10 @@ canvas{width:100%!important;max-height:200px;}
     <button class="period-btn" onclick="setPeriod('year',this)">AÑO</button>
     <button class="period-btn" onclick="setPeriod('all',this)">TODO</button>
     <div class="custom-range">
-      <input type="date" id="range-from" onchange="setPeriod('custom',null)">
-      <span style="color:var(--gold);font-size:10px;">→</span>
-      <input type="date" id="range-to" onchange="setPeriod('custom',null)">
+      <span style="font-size:9px;color:var(--gold);margin-right:4px;">DESDE</span>
+      <input type="date" id="range-from" onchange="onCustomDateChange()">
+      <span style="color:var(--gold);font-size:10px;margin:0 4px;">HASTA</span>
+      <input type="date" id="range-to" onchange="onCustomDateChange()">
     </div>
   </div>
 
@@ -527,10 +528,31 @@ function switchTab(tab){
 // ══════════════════════════════════════════════════════
 let charts = {};
 
+function onCustomDateChange(){
+  // Persist dates in localStorage
+  const from = document.getElementById('range-from').value;
+  const to   = document.getElementById('range-to').value;
+  if(from) localStorage.setItem('wu_dash_from', from);
+  if(to)   localStorage.setItem('wu_dash_to', to);
+  // Activate custom button
+  document.querySelectorAll('#tab-overview .period-btn').forEach(b=>b.classList.remove('active'));
+  currentPeriod='custom';
+  document.getElementById('hdr-period').textContent='Personalizado';
+  renderOverview();
+}
+
 function setPeriod(period, btn){
   currentPeriod = period;
   document.querySelectorAll('#tab-overview .period-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
+
+  // Restore persisted custom dates if switching to custom
+  if(period==='custom'){
+    const savedFrom=localStorage.getItem('wu_dash_from');
+    const savedTo=localStorage.getItem('wu_dash_to');
+    if(savedFrom) document.getElementById('range-from').value=savedFrom;
+    if(savedTo)   document.getElementById('range-to').value=savedTo;
+  }
 
   // Update header
   const labels={week:'Esta semana',month:'Este mes',quarter:'Este trimestre',year:'Este año',all:'Todo el tiempo',custom:'Personalizado'};
@@ -1227,6 +1249,14 @@ function populateSelects(){
 (async function init(){
   // Set today's date as default
   document.getElementById('exp-date').value=new Date().toISOString().split('T')[0];
+  // Restore custom date range
+  const savedFrom=localStorage.getItem('wu_dash_from');
+  const savedTo=localStorage.getItem('wu_dash_to');
+  if(savedFrom) document.getElementById('range-from').value=savedFrom;
+  if(savedTo) document.getElementById('range-to').value=savedTo;
+  // Default range: beginning of year to today
+  if(!savedFrom) document.getElementById('range-from').value=new Date().getFullYear()+'-01-01';
+  if(!savedTo) document.getElementById('range-to').value=new Date().toISOString().split('T')[0];
 
   // Pull from KV first (latest data)
   await loadFromKV();
