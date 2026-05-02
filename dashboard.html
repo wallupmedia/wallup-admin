@@ -38,7 +38,7 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:9px 
 .tab:hover:not(.active){color:var(--cream);}
 
 /* ── VIEWS ── */
-.view{display:none;padding:20px 20px 70px;} .view.active{display:block;}
+.view{display:none;padding:20px 20px 80px;} .view.active{display:block;}
 
 /* ── BUTTONS ── */
 .btn{font-family:'Bebas Neue';letter-spacing:1.5px;font-size:11px;padding:6px 14px;border:none;border-radius:3px;cursor:pointer;transition:all .15s;}
@@ -150,7 +150,27 @@ canvas{width:100%!important;max-height:200px;}
 
 /* Report export button */
 .export-bar{display:flex;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
-.gnav{position:fixed;bottom:0;left:0;right:0;background:#0c0c0c;border-top:1px solid #2a2a2a;display:flex;align-items:stretch;height:52px;z-index:1000;padding-bottom:env(safe-area-inset-bottom,0);}.gnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#A08C6E;transition:color .15s;font-family:"Bebas Neue",sans-serif;font-size:9px;letter-spacing:1px;}.gnav a:hover{color:#F0E8DC;}.gnav a.active{color:#F59847;}.gnav a.active .gi{filter:drop-shadow(0 0 5px rgba(245,152,71,.5));}.gnav .gi{font-size:18px;line-height:1;}.gnav .gl{font-size:8px;letter-spacing:1.5px;}body{padding-bottom:58px!important;}</style>
+.gnav{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(14,14,14,0.96);border:1px solid rgba(245,152,71,0.25);border-radius:50px;display:flex;align-items:center;height:46px;padding:0 6px;z-index:9000;backdrop-filter:blur(12px);box-shadow:0 4px 24px rgba(0,0,0,0.7);gap:2px;}.gnav a{display:flex;flex-direction:column;align-items:center;justify-content:center;width:56px;height:36px;border-radius:40px;text-decoration:none;color:#A08C6E;transition:all .2s;font-family:'Bebas Neue',sans-serif;font-size:8px;letter-spacing:1.5px;gap:1px;}.gnav a:hover:not(.active){background:rgba(255,255,255,0.05);color:#F0E8DC;}.gnav a.active{background:rgba(245,152,71,0.15);color:#F59847;}.gnav a.active .gi{filter:drop-shadow(0 0 6px rgba(245,152,71,0.6));}.gnav .gi{font-size:16px;line-height:1;}.gnav .gl{font-size:7px;letter-spacing:1.5px;}body{padding-bottom:76px!important;}
+@media(max-width:768px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .charts-grid{grid-template-columns:1fr;}
+  .section-hd{flex-wrap:wrap;}
+  .period-bar{flex-wrap:wrap;}
+  .form-grid.g2,.form-grid.g3,.form-grid.g4{grid-template-columns:1fr 1fr;}
+  .data-table{font-size:10px;}
+  .data-table th,.data-table td{padding:6px 8px;}
+  .tabs{overflow-x:auto;flex-wrap:nowrap;}
+  .tab{white-space:nowrap;font-size:10px;padding:5px 10px;}
+  header{flex-wrap:wrap;gap:6px;padding:8px 12px;}
+}
+@media(max-width:480px){
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .kpi-val{font-size:18px;}
+  .form-grid.g2,.form-grid.g3,.form-grid.g4{grid-template-columns:1fr;}
+  .gnav .gl{display:none;}
+  .gnav a{width:44px;}
+}
+</style>
 </head>
 <body>
 
@@ -167,6 +187,7 @@ canvas{width:100%!important;max-height:200px;}
   <div class="tab" onclick="switchTab('reports')">📈 REPORTES</div>
   <div class="tab" onclick="switchTab('expenses')">💸 GASTOS</div>
   <div class="tab" onclick="switchTab('commissions')">🤝 COMISIONES</div>
+  <div class="tab" onclick="switchTab('pipeline')">📌 PIPELINE</div>
 </div>
 
 <!-- ═══════════ RESUMEN ═══════════ -->
@@ -513,7 +534,7 @@ function catLabel(c){return{
 // ══════════════════════════════════════════════════════
 function switchTab(tab){
   document.querySelectorAll('.tab').forEach((t,i)=>{
-    t.classList.toggle('active',['overview','reports','expenses','commissions'][i]===tab);
+    t.classList.toggle('active',['overview','reports','expenses','commissions','pipeline'][i]===tab);
   });
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
@@ -521,6 +542,7 @@ function switchTab(tab){
   if(tab==='reports')  renderReport();
   if(tab==='expenses') renderExpenses();
   if(tab==='commissions') renderCommissions();
+  if(tab==='pipeline')    renderPipeline();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1187,10 +1209,79 @@ function exportReportPDF(){
   <body>
     <h1>WALL UP MEDIA — REPORTE ${currentReportYear}</h1>
     ${content}
-  <nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html" class="active"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
+  
+<!-- ═══════════ PIPELINE ═══════════ -->
+<div class="view" id="tab-pipeline">
+  <div class="section-hd">
+    <h2>PIPELINE DE TRABAJOS</h2>
+    <span class="sub" id="pipeline-count"></span>
+    <div style="margin-left:auto;display:flex;gap:6px;">
+      <button class="btn btn-orange btn-sm" onclick="window.location='quotes.html'">+ NUEVA COTIZACIÓN</button>
+    </div>
+  </div>
+  <div class="pipeline-board" id="pipeline-board"></div>
+</div>
+<nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html" class="active"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
 </body></html>`);
   w.document.close();
   setTimeout(()=>{w.focus();w.print();},600);
+}
+
+// ══════════════════════════════════════════════════════
+// PIPELINE KANBAN
+// ══════════════════════════════════════════════════════
+const PIPELINE_COLS = [
+  {key:'draft',   label:'BORRADORES',      color:'var(--gold)'},
+  {key:'sent',    label:'ENVIADOS',         color:'var(--blue)'},
+  {key:'pending', label:'NO RECIBIDOS',     color:'var(--danger)'},
+  {key:'partial', label:'ABONO RECIBIDO',   color:'var(--yellow)'},
+  {key:'paid',    label:'PAGADOS ✓',        color:'var(--green)'},
+];
+
+function renderPipeline(){
+  const board = document.getElementById('pipeline-board');
+  const total = quotes.length;
+  document.getElementById('pipeline-count').textContent = `${total} cotizaciones en total`;
+
+  const cols = {};
+  PIPELINE_COLS.forEach(col => cols[col.key] = []);
+  quotes.forEach(q => {
+    const key = q.status || 'draft';
+    if(cols[key]) cols[key].push(q);
+    else cols['draft'].push(q);
+  });
+
+  board.innerHTML = PIPELINE_COLS.map(col => {
+    const items = cols[col.key] || [];
+    const colTotal = items.reduce((s,q)=>s+(q.total||0),0);
+    return `
+      <div class="pipeline-col">
+        <div class="pipeline-col-hd" style="border-top:3px solid ${col.color};background:var(--card2)">
+          <span style="color:${col.color}">${col.label}</span>
+          <span class="pc-count">${items.length}</span>
+        </div>
+        <div class="pipeline-col-body">
+          ${items.length>0?`<div style="font-size:9px;color:var(--gold);text-align:right;padding:0 4px;">
+            Total: <span style="color:var(--orange);font-family:'DM Mono'">RD$${fmtShort(colTotal)}</span>
+          </div>`:''}
+          ${items.map(q=>`
+            <div class="pipeline-card" onclick="goToQuote('${q.id}')">
+              <div class="pc-name">${esc(q.internalName||q.num||'—')}</div>
+              <div class="pc-client">${esc(q.client?.name||'—')}</div>
+              <div class="pc-total">RD$${fmtNum(q.total||0)}</div>
+              ${(q.balance||0)>0?`<div class="pc-balance" style="color:var(--danger);font-size:9px;font-family:'DM Mono'">Balance: RD$${fmtNum(q.balance)}</div>`:''}
+              <div class="pc-date">${q.date?formatDate(q.date):''} ${q.client?.service?'· '+q.client.service:''}</div>
+            </div>`).join('')}
+          ${items.length===0?`<div style="text-align:center;color:var(--border2);font-size:10px;padding:20px 8px;">Sin trabajos</div>`:''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function goToQuote(id){
+  // Navigate to quotes with this quote loaded
+  localStorage.setItem('wu_open_quote', id);
+  window.location = 'quotes.html';
 }
 
 // ══════════════════════════════════════════════════════
