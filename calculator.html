@@ -336,7 +336,7 @@ header{
 }
 .import-zone:hover,.import-zone.drag{border-color:var(--orange);color:var(--cream);}
 .import-zone input{display:none;}
-.gnav{position:fixed;bottom:0;left:0;right:0;background:#0c0c0c;border-top:1px solid #2a2a2a;display:flex;align-items:stretch;height:52px;z-index:1000;padding-bottom:env(safe-area-inset-bottom,0);}.gnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:#A08C6E;transition:color .15s;font-family:"Bebas Neue",sans-serif;font-size:9px;letter-spacing:1px;}.gnav a:hover{color:#F0E8DC;}.gnav a.active{color:#F59847;}.gnav a.active .gi{filter:drop-shadow(0 0 5px rgba(245,152,71,.5));}.gnav .gi{font-size:18px;line-height:1;}.gnav .gl{font-size:8px;letter-spacing:1.5px;}
+
 @media(max-width:768px){
   .main{flex-direction:column;}
   .catalog{width:100%;min-width:unset;height:auto;max-height:40vh;border-right:none;border-bottom:1px solid #2a2a2a;}
@@ -349,12 +349,22 @@ header{
   .gnav .gl{display:none;}
   .gnav a{width:44px;}
 }
+/* ── NAV PILL ── */
+.gnav{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(12,12,12,0.97);border:1px solid rgba(245,152,71,0.3);border-radius:50px;display:flex;align-items:center;height:46px;padding:0 6px;z-index:9999;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 4px 28px rgba(0,0,0,0.8),0 0 0 1px rgba(245,152,71,0.05);gap:2px;}
+.gnav a{display:flex;flex-direction:column;align-items:center;justify-content:center;width:56px;height:36px;border-radius:40px;text-decoration:none;color:#A08C6E;transition:all .2s;font-family:'Bebas Neue',sans-serif;font-size:8px;letter-spacing:1.5px;gap:1px;}
+.gnav a:hover:not(.active){background:rgba(255,255,255,0.06);color:#F0E8DC;}
+.gnav a.active{background:rgba(245,152,71,0.18);color:#F59847;}
+.gnav a.active .gi{filter:drop-shadow(0 0 6px rgba(245,152,71,0.6));}
+.gnav .gi{font-size:17px;line-height:1;}
+.gnav .gl{font-size:7px;letter-spacing:1.5px;}
+@media(max-width:480px){.gnav .gl{display:none;}.gnav a{width:48px;}}
+body{padding-bottom:72px!important;}
 </style>
 </head>
 <body>
 
 <header>
-  <img src="assets/logo-horizontal-naranja.png" alt="Wall UP Media" style="height:32px;width:auto;border-radius:4px;">
+  <img src="assets/logo-horizontal.png" alt="Wall UP Media" style="height:32px;width:auto;border-radius:4px;">
   <div class="header-right">
     <span class="version">ADMIN · FASE 1 · CALCULADORA</span>
     <button class="btn btn-outline btn-sm" onclick="exportCatalogXLSX()">↓ EXPORTAR CATÁLOGO</button>
@@ -1378,6 +1388,8 @@ recalculate();
   }catch{}
 })();
 </script>
+
+
 <nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html" class="active"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
 </body>
 </html>
