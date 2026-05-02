@@ -10,22 +10,16 @@
   "theme_color": "#F59847",
   "icons": [
     {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512.png",
+      "src": "icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "assets/isotipo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -38,6 +32,11 @@
       "name": "Cotizaciones",
       "url": "/wallup-admin/quotes.html",
       "description": "Sistema de cotizaciones"
+    },
+    {
+      "name": "Dashboard",
+      "url": "/wallup-admin/dashboard.html",
+      "description": "Reportes y finanzas"
     }
   ],
   "categories": ["business", "productivity"],
