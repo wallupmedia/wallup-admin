@@ -447,9 +447,128 @@ body{padding-bottom:72px!important;}
 // ══════════════════════════════════════════════════════
 const KV = 'https://notion-proxy-wallup.wallupmedia.workers.dev/db';
 
-let quotes   = JSON.parse(localStorage.getItem('wu_quotes')  || '[]');
-let clients  = JSON.parse(localStorage.getItem('wu_clients') || '[]');
-let expenses = JSON.parse(localStorage.getItem('wu_expenses')|| '[]');
+// ══════════════════════════════════════════════
+// WALL UP DB — KV-FIRST
+// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// WALL UP ADMIN — BASE DE DATOS EN LA NUBE
+// KV primero. localStorage como fallback offline.
+// ═══════════════════════════════════════════════════════════
+const WU_DB = {
+  KV: 'https://notion-proxy-wallup.wallupmedia.workers.dev/db',
+  _online: true,
+  _listeners: {},
+
+  // ─── Leer ───
+  async get(key) {
+    try {
+      const r = await fetch(`${this.KV}/${key}`, {cache: 'no-store'});
+      if (!r.ok) throw new Error('network');
+      const text = await r.text();
+      const val = text === 'null' ? null : JSON.parse(text);
+      // Actualiza localStorage como backup
+      if (val !== null) localStorage.setItem(key, JSON.stringify(val));
+      this._online = true;
+      return val;
+    } catch {
+      this._online = false;
+      // Fallback a localStorage
+      const local = localStorage.getItem(key);
+      return local ? JSON.parse(local) : null;
+    }
+  },
+
+  // ─── Escribir ───
+  async set(key, value) {
+    // Siempre escribe en localStorage primero (instantáneo)
+    localStorage.setItem(key, JSON.stringify(value));
+    // Luego sube a KV
+    try {
+      const r = await fetch(`${this.KV}/${key}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(value)
+      });
+      if (!r.ok) throw new Error('network');
+      this._online = true;
+      this._emit(key, value);
+      return true;
+    } catch {
+      this._online = false;
+      // Marca como pendiente de sync
+      const pending = JSON.parse(localStorage.getItem('wu_pending_sync') || '[]');
+      if (!pending.includes(key)) { pending.push(key); localStorage.setItem('wu_pending_sync', JSON.stringify(pending)); }
+      return false;
+    }
+  },
+
+  // ─── Sincronizar pendientes (cuando vuelve la conexión) ───
+  async syncPending() {
+    const pending = JSON.parse(localStorage.getItem('wu_pending_sync') || '[]');
+    if (!pending.length) return;
+    const synced = [];
+    for (const key of pending) {
+      const local = localStorage.getItem(key);
+      if (local) {
+        try {
+          const r = await fetch(`${this.KV}/${key}`, {method:'PUT',headers:{'Content-Type':'application/json'},body:local});
+          if (r.ok) synced.push(key);
+        } catch {}
+      }
+    }
+    if (synced.length) {
+      const remaining = pending.filter(k => !synced.includes(k));
+      localStorage.setItem('wu_pending_sync', JSON.stringify(remaining));
+    }
+    return synced.length;
+  },
+
+  // ─── Helpers para los datos principales ───
+  async getQuotes()   { return await this.get('wu_quotes')   || []; },
+  async getClients()  { return await this.get('wu_clients')  || []; },
+  async getCatalog()  { return await this.get('wu_catalog')  || []; },
+  async getCombos()   { return await this.get('wu_combos')   || []; },
+  async getExpenses() { return await this.get('wu_expenses') || []; },
+  async getComms()    { return await this.get('wu_commissions') || []; },
+  async getNotion()   { return await this.get('wu_notion')   || {}; },
+  async getExpCat()   { return await this.get('wu_expense_catalog') || []; },
+  async getCounter()  { return await this.get('wu_counter')  || 1; },
+
+  async saveQuotes(v)   { return await this.set('wu_quotes', v); },
+  async saveClients(v)  { return await this.set('wu_clients', v); },
+  async saveCatalog(v)  { return await this.set('wu_catalog', v); },
+  async saveCombos(v)   { return await this.set('wu_combos', v); },
+  async saveExpenses(v) { return await this.set('wu_expenses', v); },
+  async saveComms(v)    { return await this.set('wu_commissions', v); },
+  async saveNotion(v)   { return await this.set('wu_notion', v); },
+  async saveExpCat(v)   { return await this.set('wu_expense_catalog', v); },
+  async saveCounter(v)  { return await this.set('wu_counter', v); },
+
+  // ─── Eventos (notifica cuando cambia un key) ───
+  on(key, fn)  { if (!this._listeners[key]) this._listeners[key]=[]; this._listeners[key].push(fn); },
+  off(key, fn) { if (this._listeners[key]) this._listeners[key]=this._listeners[key].filter(f=>f!==fn); },
+  _emit(key, val) { (this._listeners[key]||[]).forEach(fn=>fn(val)); },
+
+  // ─── Estado de conexión ───
+  isOnline() { return this._online; },
+
+  // ─── Init: carga datos frescos + sync pendientes ───
+  async init(onReady) {
+    // Sincroniza datos pendientes offline primero
+    await this.syncPending();
+    if (onReady) onReady();
+  }
+};
+
+// Monitorear conexión
+window.addEventListener('online',  () => { WU_DB._online=true;  WU_DB.syncPending(); });
+window.addEventListener('offline', () => { WU_DB._online=false; });
+
+
+// Render inmediato desde localStorage
+let quotes      = JSON.parse(localStorage.getItem('wu_quotes')      || '[]');
+let clients     = JSON.parse(localStorage.getItem('wu_clients')     || '[]');
+let expenses    = JSON.parse(localStorage.getItem('wu_expenses')    || '[]');
 let commissions = JSON.parse(localStorage.getItem('wu_commissions') || '[]');
 
 // ── Period state ──
@@ -988,8 +1107,8 @@ function saveExpense(){
     createdAt:new Date().toISOString()
   };
   expenses.push(exp);
-  localStorage.setItem('wu_expenses',JSON.stringify(expenses));
-  syncKV('wu_expenses',expenses);
+  WU_DB.set('wu_expenses', expenses);
+  
   // Reset
   document.getElementById('exp-amount').value='';
   document.getElementById('exp-desc').value='';
@@ -1049,8 +1168,8 @@ function renderExpenses(){
 function deleteExpense(id){
   if(!confirm('¿Eliminar este gasto?')) return;
   expenses=expenses.filter(e=>e.id!==id);
-  localStorage.setItem('wu_expenses',JSON.stringify(expenses));
-  syncKV('wu_expenses',expenses);
+  WU_DB.set('wu_expenses', expenses);
+  
   renderExpenses();
 }
 
@@ -1108,8 +1227,8 @@ function calcCommission(){
   if(entries.length===0){showToast('⚠️ No hay trabajos en el período seleccionado.');return;}
 
   commissions=[...commissions,...entries];
-  localStorage.setItem('wu_commissions',JSON.stringify(commissions));
-  syncKV('wu_commissions',commissions);
+  WU_DB.set('wu_commissions', commissions);
+  
   renderCommissions();
   showToast(`✅ ${entries.length} comisión(es) calculada(s) — Total: RD$${fmtNum(totalComm)}`);
 }
@@ -1181,14 +1300,14 @@ function renderCommissions(){
 
 function markCommPaid(id){
   const c=commissions.find(x=>x.id===id);
-  if(c){c.status='paid';localStorage.setItem('wu_commissions',JSON.stringify(commissions));syncKV('wu_commissions',commissions);renderCommissions();showToast('✅ Comisión marcada como pagada');}
+  if(c){c.status='paid';WU_DB.set('wu_commissions', commissions);renderCommissions();showToast('✅ Comisión marcada como pagada');}
 }
 
 function deleteComm(id){
   if(!confirm('¿Eliminar esta comisión?')) return;
   commissions=commissions.filter(c=>c.id!==id);
-  localStorage.setItem('wu_commissions',JSON.stringify(commissions));
-  syncKV('wu_commissions',commissions);
+  WU_DB.set('wu_commissions', commissions);
+  
   renderCommissions();
 }
 
@@ -1364,6 +1483,17 @@ function populateSelects(){
 (async function init(){
   // Set today's date as default
   document.getElementById('exp-date').value=new Date().toISOString().split('T')[0];
+
+  // ─── CARGA FRESCA DESDE KV ───
+  await WU_DB.syncPending();
+  const [freshQ, freshC, freshE, freshComm] = await Promise.all([
+    WU_DB.getQuotes(), WU_DB.getClients(),
+    WU_DB.get('wu_expenses'), WU_DB.get('wu_commissions')
+  ]);
+  if(freshQ && freshQ.length > 0)    quotes      = freshQ;
+  if(freshC && freshC.length > 0)    clients     = freshC;
+  if(freshE && freshE.length > 0)    expenses    = freshE;
+  if(freshComm && freshComm.length > 0) commissions = freshComm;
   // Restore custom date range
   const savedFrom=localStorage.getItem('wu_dash_from');
   const savedTo=localStorage.getItem('wu_dash_to');
