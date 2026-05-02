@@ -85,6 +85,13 @@ label.field-lbl{font-size:9px;color:var(--gold);letter-spacing:.8px;display:bloc
 .s-paid{background:rgba(90,184,122,.15);color:var(--green);border:1px solid rgba(90,184,122,.3);}
 .s-draft{background:rgba(160,140,110,.15);color:var(--gold);border:1px solid rgba(160,140,110,.3);}
 .s-sent{background:rgba(90,155,224,.15);color:var(--blue);border:1px solid rgba(90,155,224,.3);}
+/* ── GLOBAL NAV ── */
+.gnav{position:fixed;bottom:0;left:0;right:0;background:#0c0c0c;border-top:1px solid var(--border);display:flex;align-items:stretch;height:52px;z-index:1000;padding-bottom:env(safe-area-inset-bottom,0);}
+.gnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:var(--gold);transition:color .15s;font-family:'Bebas Neue';font-size:9px;letter-spacing:1px;}
+.gnav a:hover{color:var(--cream);}.gnav a.active{color:var(--orange);}
+.gnav a.active .gi{filter:drop-shadow(0 0 5px rgba(245,152,71,.5));}
+.gnav .gi{font-size:18px;line-height:1;}.gnav .gl{font-size:8px;letter-spacing:1.5px;}
+body{padding-bottom:58px!important;}
 
 .qt-num{font-family:'Bebas Neue';letter-spacing:1px;color:var(--orange);font-size:13px;}
 .qt-client{color:var(--cream);font-size:11px;}
@@ -350,7 +357,7 @@ label.field-lbl{font-size:9px;color:var(--gold);letter-spacing:.8px;display:bloc
         <div class="form-grid cols2">
           <div>
             <label class="field-lbl">TIPO DE DOCUMENTO</label>
-            <select class="inp" id="f-type" onchange="updatePreview()">
+            <select class="inp" id="f-type" onchange="updatePreview();updateGroupBtn()">
               <option value="PRESUPUESTO">PRESUPUESTO</option>
               <option value="COTIZACIÓN">COTIZACIÓN</option>
               <option value="FACTURA">FACTURA</option>
@@ -454,7 +461,11 @@ label.field-lbl{font-size:9px;color:var(--gold);letter-spacing:.8px;display:bloc
               </tr>
             </tbody>
           </table>
-          <button class="add-line-btn" onclick="addBlankItem()">+ AGREGAR LÍNEA</button>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <button class="add-line-btn" onclick="addBlankItem()" style="flex:1">+ AGREGAR LÍNEA</button>
+            <button class="add-line-btn" id="btn-add-group" onclick="addGroupHeader()"
+              style="flex:1;border-color:var(--gold);color:var(--gold);display:none">＋ AÑADIR GRUPO / SECCIÓN</button>
+          </div>
         </div>
 
         <!-- Totales -->
@@ -590,6 +601,53 @@ Cuenta BHD: 31937430015</textarea>
             style="margin-bottom:6px;font-size:9px;">
           <button class="btn btn-outline btn-sm" style="width:100%;font-size:9px" onclick="linkToNotionPage()">✓ ENLAZAR</button>
           <div id="notion-link-status" style="font-size:9px;margin-top:5px;display:none;"></div>
+        </div>
+      </div>
+
+      <!-- ▶ GASTOS INTERNOS — no aparecen en el PDF -->
+      <div class="right-section" style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+        <div class="right-title" style="color:var(--blue);">▶ GASTOS INTERNOS
+          <span style="font-size:8px;color:var(--border2);font-family:'DM Mono';letter-spacing:0;margin-left:4px;">no aparecen en el PDF</span>
+        </div>
+
+        <!-- Form -->
+        <div style="background:var(--bg);border:1px solid var(--border2);border-radius:3px;padding:8px;margin-bottom:6px;">
+          <div style="margin-bottom:5px;">
+            <label class="field-lbl">CATEGORÍA</label>
+            <select class="inp inp-sm" id="ie-cat">
+              <option value="subcontrato-foto">Sub. Fotógrafo</option>
+              <option value="subcontrato-video">Sub. Camarógrafo</option>
+              <option value="asistente">Asistente</option>
+              <option value="transporte">Transporte</option>
+              <option value="equipo">Equipo / Alquiler</option>
+              <option value="album-caja">Álbum / Caja</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div style="margin-bottom:5px;">
+            <label class="field-lbl">DESCRIPCIÓN</label>
+            <input class="inp inp-sm" id="ie-desc" placeholder="Ej: Juan Pérez — 8h fotografía">
+          </div>
+          <div style="margin-bottom:6px;">
+            <label class="field-lbl">MONTO RD$</label>
+            <input class="inp inp-sm" id="ie-amount" type="number" step="100" placeholder="0" style="text-align:right">
+          </div>
+          <button class="btn btn-blue btn-sm" style="width:100%" onclick="addInternalExpense()">+ AGREGAR GASTO</button>
+        </div>
+
+        <!-- List -->
+        <div id="ie-list" style="font-size:10px;color:var(--gold);text-align:center;padding:6px 0;">Sin gastos internos</div>
+
+        <!-- Summary -->
+        <div id="ie-summary" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:8px;margin-top:6px;">
+          <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;">
+            <span style="color:var(--gold)">TOTAL GASTOS</span>
+            <span style="font-family:'DM Mono';color:var(--blue)" id="ie-total-val">RD$0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;">
+            <span style="color:var(--gold)">UTILIDAD ESTIMADA</span>
+            <span style="font-family:'DM Mono'" id="ie-util-val">RD$0</span>
+          </div>
         </div>
       </div>
 
@@ -947,6 +1005,8 @@ function loadQuoteIntoEditor(q){
   renderEditorItems();
   recalcEditor();
   renderPayHistory();
+  renderIEList();
+  updateGroupBtn();
   updateClientSelect();
 }
 
@@ -1021,8 +1081,19 @@ function saveQuote(){
 // EDITOR ITEMS
 // ══════════════════════════════════════════════════
 function addBlankItem(){
-  edItems.push({uid:Date.now()+Math.random(),name:'',code:'',desc:'',qty:1,unitPrice:0,disc:0,unit:'unidad'});
+  edItems.push({uid:Date.now()+Math.random(),type:'item',name:'',code:'',desc:'',qty:1,unitPrice:0,disc:0,unit:'unidad'});
   renderEditorItems();
+}
+
+function addGroupHeader(){
+  edItems.push({uid:Date.now()+Math.random(),type:'group',title:'NUEVO GRUPO'});
+  renderEditorItems();
+}
+
+function updateGroupBtn(){
+  const type=document.getElementById('f-type').value;
+  const btn=document.getElementById('btn-add-group');
+  if(btn) btn.style.display=(type==='PRESUPUESTO'||type==='PROPUESTA')?'':'none';
 }
 
 function addItemFromCatalog(){
@@ -1131,14 +1202,51 @@ function updateEdItem(uid,field,val){
 
 function renderEditorItems(){
   const tbody=document.getElementById('editor-items-body');
+  const type=document.getElementById('f-type')?.value||'PRESUPUESTO';
+  const useGroups=(type==='PRESUPUESTO'||type==='PROPUESTA');
+
   if(edItems.length===0){
     tbody.innerHTML=`<tr id="items-empty-row"><td colspan="9" style="text-align:center;padding:20px;color:var(--gold);font-size:10px;">Agrega ítems usando los botones de arriba o <span style="color:var(--orange);cursor:pointer" onclick="addBlankItem()">haz clic aquí</span></td></tr>`;
     return;
   }
+
+  // Calculate group subtotals
+  function groupSubtotal(startIdx){
+    let sum=0;
+    for(let j=startIdx+1;j<edItems.length;j++){
+      if(edItems[j].type==='group') break;
+      const it=edItems[j];
+      sum+=(it.qty||0)*(it.unitPrice||0)*(1-((it.disc||0)/100));
+    }
+    return sum;
+  }
+
+  let itemNum=0;
   tbody.innerHTML=edItems.map((it,i)=>{
-    const lt=it.qty*it.unitPrice*(1-(it.disc||0)/100);
+    // GROUP HEADER
+    if(it.type==='group'){
+      const sub=useGroups?groupSubtotal(i):0;
+      return `<tr data-uid="${it.uid}" style="background:var(--card2)">
+        <td colspan="9" style="padding:6px 8px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:10px;color:var(--gold);">▸</span>
+            <input class="inp inp-sm" value="${esc(it.title||'GRUPO')}"
+              style="flex:1;font-family:'Bebas Neue';letter-spacing:2px;font-size:13px;background:transparent;border-color:var(--border);color:var(--orange)"
+              onchange="updateEdItem('${it.uid}','title',this.value)" placeholder="NOMBRE DEL GRUPO">
+            ${useGroups?`<span style="font-family:'DM Mono';font-size:11px;color:var(--gold);white-space:nowrap">
+              Subtotal: <strong style="color:var(--orange)">RD$${fmtNum(sub)}</strong>
+            </span>`:''}
+            <button class="btn btn-danger btn-xs" onclick="removeEdItem('${it.uid}')">✕</button>
+          </div>
+        </td>
+      </tr>`;
+    }
+
+    // REGULAR ITEM
+    itemNum++;
+    const lt=(it.qty||0)*(it.unitPrice||0)*(1-((it.disc||0)/100));
     return `<tr data-uid="${it.uid}">
-      <td class="ei-num">${i+1}</td>
+      <td class="ei-num">${itemNum}</td>
       <td class="ei-name"><input class="inp inp-sm" value="${esc(it.name)}" placeholder="Nombre del artículo" onchange="updateEdItem('${it.uid}','name',this.value)" oninput="updateEdItem('${it.uid}','name',this.value)"></td>
       <td class="ecol-code ${edColVis.code?'':'d-none'}"><input class="inp inp-sm" value="${esc(it.code)}" placeholder="Código" onchange="updateEdItem('${it.uid}','code',this.value)" style="width:90px"></td>
       <td class="ecol-desc ${edColVis.desc?'':'d-none'}"><input class="inp inp-sm" value="${esc(it.desc)}" placeholder="Descripción" onchange="updateEdItem('${it.uid}','desc',this.value)"></td>
@@ -1156,7 +1264,8 @@ function renderEditorItems(){
 // ══════════════════════════════════════════════════
 function calcTotals(){
   const globalDisc=parseFloat(document.getElementById('ed-global-disc').value)||0;
-  let subtotal=edItems.reduce((s,it)=>s+it.qty*it.unitPrice*(1-(it.disc||0)/100),0);
+  // Only sum regular items (skip group headers)
+  let subtotal=edItems.filter(it=>it.type!=='group').reduce((s,it)=>s+(it.qty||0)*(it.unitPrice||0)*(1-((it.disc||0)/100)),0);
   let afterDisc=subtotal*(1-globalDisc/100);
   let discAmount=subtotal-afterDisc;
   let itbisAmount=edItbis?afterDisc*0.18:0;
@@ -1486,19 +1595,47 @@ function buildPreview(){
   const bank=modVis.bank?document.getElementById('f-bank').value:'';
   const t=calcTotals();
 
-  const itemRows=edItems.map(it=>{
-    const lt=it.qty*it.unitPrice*(1-(it.disc||0)/100);
-    return `<tr>
-      <td style="padding:10px">
-        <div class="pf-item-name">${esc(it.name)||'—'}</div>
-        ${it.code&&edColVis.code?`<div class="pf-item-code">${esc(it.code)}</div>`:''}
-        ${it.desc&&edColVis.desc?`<div class="pf-item-desc">${esc(it.desc)}</div>`:''}
-      </td>
-      ${edColVis.qty?`<td style="text-align:right;padding:10px;white-space:nowrap;vertical-align:top"><div class="pf-item-qty">${it.qty} ${it.unit}</div></td>`:''}
-      ${edColVis.uprice?`<td style="text-align:right;padding:10px;white-space:nowrap;vertical-align:top"><div class="pf-item-price">RD$${fmtNum(it.unitPrice)}</div></td>`:''}
-      <td style="text-align:right;padding:10px;white-space:nowrap;vertical-align:top"><div class="pf-item-total">RD$${fmtNum(lt)}</div></td>
-    </tr>`;
-  }).join('');
+  const useGroups=(type==='PRESUPUESTO'||type==='PROPUESTA');
+
+  // Build item rows — groups only render in PRESUPUESTO/PROPUESTA
+  const itemRows=(()=>{
+    let rows='', itemNum=0;
+    edItems.forEach((it,i)=>{
+      if(it.type==='group'){
+        // Calculate subtotal for this group
+        let groupSub=0;
+        for(let j=i+1;j<edItems.length;j++){
+          if(edItems[j].type==='group') break;
+          const gi=edItems[j];
+          groupSub+=(gi.qty||0)*(gi.unitPrice||0)*(1-((gi.disc||0)/100));
+        }
+        if(useGroups){
+          rows+=`<tr>
+            <td colspan="4" style="padding:6px 10px 3px;background:#f8f5f0;border-bottom:1px solid #F59847;">
+              <div style="font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;color:#080808;display:flex;justify-content:space-between;align-items:center;">
+                <span>${esc(it.title||'GRUPO')}</span>
+                <span style="color:#A08C6E;font-size:11px;">Subtotal: RD$${fmtNum(groupSub)}</span>
+              </div>
+            </td>
+          </tr>`;
+        }
+        return;
+      }
+      itemNum++;
+      const lt=(it.qty||0)*(it.unitPrice||0)*(1-((it.disc||0)/100));
+      rows+=`<tr>
+        <td style="padding:10px">
+          <div class="pf-item-name">${esc(it.name)||'—'}</div>
+          ${it.code&&edColVis.code?`<div class="pf-item-code">${esc(it.code)}</div>`:''}
+          ${it.desc&&edColVis.desc?`<div class="pf-item-desc">${esc(it.desc)}</div>`:''}
+        </td>
+        ${edColVis.qty?`<td style="text-align:right;padding:10px;white-space:nowrap;vertical-align:top"><div class="pf-item-qty">${it.qty} ${it.unit||''}</div></td>`:''}
+        ${edColVis.uprice?`<td style="text-align:right;padding:10px;white-space:nowrap;vertical-align:top"><div class="pf-item-price">RD$${fmtNum(it.unitPrice||0)}</div></td>`:''}
+        <td style="text-align:right;padding:10px;white-space:nowrap;vertical-align:top"><div class="pf-item-total">RD$${fmtNum(lt)}</div></td>
+      </tr>`;
+    });
+    return rows;
+  })();
 
   const html=`
   <div class="preview-frame">
@@ -1618,7 +1755,8 @@ function printQuote(){
     .pf-bank{width:200px;flex-shrink:0;}
     .pf-signature{margin-top:20px;padding-top:14px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:flex-end;}
     .pf-sig-line{width:200px;border-top:1px solid #333;padding-top:5px;font-size:8px;color:#666;text-align:center;}
-  </style></head><body>${content}</body></html>`);
+  </style></head><body>${content}<nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html" class="active"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
+</body></html>`);
   w.document.close();
   setTimeout(()=>{w.focus();w.print();},600);
 }
@@ -2483,6 +2621,57 @@ async function importQuotesFromNotion(){
     resultEl.style.cssText='display:block;color:var(--danger)';
     resultEl.textContent='❌ Error: '+e.message;
   }
+}
+
+// ══════════════════════════════════════════════════
+// GASTOS INTERNOS DE LA COTIZACIÓN
+// ══════════════════════════════════════════════════
+function addInternalExpense(){
+  const amount=parseFloat(document.getElementById('ie-amount').value)||0;
+  if(amount<=0){showToast('⚠️ Ingresa un monto válido.');return;}
+  if(!currentQuote) return;
+  if(!currentQuote.internalExpenses) currentQuote.internalExpenses=[];
+  currentQuote.internalExpenses.push({
+    id:'IE-'+Date.now(),
+    cat:document.getElementById('ie-cat').value,
+    desc:document.getElementById('ie-desc').value,
+    amount,
+  });
+  document.getElementById('ie-amount').value='';
+  document.getElementById('ie-desc').value='';
+  renderIEList();
+}
+
+function renderIEList(){
+  if(!currentQuote) return;
+  const list=document.getElementById('ie-list');
+  const summary=document.getElementById('ie-summary');
+  const exps=currentQuote.internalExpenses||[];
+  if(exps.length===0){
+    list.innerHTML='<div style="text-align:center;color:var(--gold);padding:6px 0;font-size:10px;">Sin gastos internos</div>';
+    summary.style.display='none';return;
+  }
+  const catNames={'subcontrato-foto':'Sub. Fotógrafo','subcontrato-video':'Sub. Camarógrafo','asistente':'Asistente','transporte':'Transporte','equipo':'Equipo','album-caja':'Álbum/Caja','otro':'Otro'};
+  const totalExp=exps.reduce((s,e)=>s+(e.amount||0),0);
+  const t=calcTotals();
+  const util=t.grandTotal-totalExp;
+  list.innerHTML=exps.map(e=>`
+    <div style="display:flex;align-items:center;gap:6px;padding:4px 6px;background:var(--bg);border:1px solid var(--border);border-radius:3px;margin-bottom:3px;">
+      <span style="font-size:9px;color:var(--blue);flex:1">${catNames[e.cat]||e.cat}${e.desc?' · '+e.desc:''}</span>
+      <span style="font-family:'DM Mono';font-size:10px;color:var(--cream)">RD$${fmtNum(e.amount)}</span>
+      <button style="background:none;border:none;color:var(--border2);cursor:pointer;font-size:12px;" onclick="removeIE('${e.id}')">✕</button>
+    </div>`).join('');
+  document.getElementById('ie-total-val').textContent='RD$'+fmtNum(totalExp);
+  const utilEl=document.getElementById('ie-util-val');
+  utilEl.textContent='RD$'+fmtNum(util);
+  utilEl.style.color=util>=0?'var(--green)':'var(--danger)';
+  summary.style.display='block';
+}
+
+function removeIE(id){
+  if(!currentQuote) return;
+  currentQuote.internalExpenses=(currentQuote.internalExpenses||[]).filter(e=>e.id!==id);
+  renderIEList();
 }
 
 function catColor(cat){return{Particular:'#A08C6E',Recurrente:'#5ab87a',Referido:'#5a9be0',VIP:'#F59847',Empresa:'#e0c855'}[cat]||'#A08C6E';}
