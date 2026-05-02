@@ -1059,6 +1059,125 @@ const DEFAULT_CATALOG = [
 // ══════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// WALL UP DB — KV-FIRST DATABASE
+// ══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// WALL UP ADMIN — BASE DE DATOS EN LA NUBE
+// KV primero. localStorage como fallback offline.
+// ═══════════════════════════════════════════════════════════
+const WU_DB = {
+  KV: 'https://notion-proxy-wallup.wallupmedia.workers.dev/db',
+  _online: true,
+  _listeners: {},
+
+  // ─── Leer ───
+  async get(key) {
+    try {
+      const r = await fetch(`${this.KV}/${key}`, {cache: 'no-store'});
+      if (!r.ok) throw new Error('network');
+      const text = await r.text();
+      const val = text === 'null' ? null : JSON.parse(text);
+      // Actualiza localStorage como backup
+      if (val !== null) localStorage.setItem(key, JSON.stringify(val));
+      this._online = true;
+      return val;
+    } catch {
+      this._online = false;
+      // Fallback a localStorage
+      const local = localStorage.getItem(key);
+      return local ? JSON.parse(local) : null;
+    }
+  },
+
+  // ─── Escribir ───
+  async set(key, value) {
+    // Siempre escribe en localStorage primero (instantáneo)
+    localStorage.setItem(key, JSON.stringify(value));
+    // Luego sube a KV
+    try {
+      const r = await fetch(`${this.KV}/${key}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(value)
+      });
+      if (!r.ok) throw new Error('network');
+      this._online = true;
+      this._emit(key, value);
+      return true;
+    } catch {
+      this._online = false;
+      // Marca como pendiente de sync
+      const pending = JSON.parse(localStorage.getItem('wu_pending_sync') || '[]');
+      if (!pending.includes(key)) { pending.push(key); localStorage.setItem('wu_pending_sync', JSON.stringify(pending)); }
+      return false;
+    }
+  },
+
+  // ─── Sincronizar pendientes (cuando vuelve la conexión) ───
+  async syncPending() {
+    const pending = JSON.parse(localStorage.getItem('wu_pending_sync') || '[]');
+    if (!pending.length) return;
+    const synced = [];
+    for (const key of pending) {
+      const local = localStorage.getItem(key);
+      if (local) {
+        try {
+          const r = await fetch(`${this.KV}/${key}`, {method:'PUT',headers:{'Content-Type':'application/json'},body:local});
+          if (r.ok) synced.push(key);
+        } catch {}
+      }
+    }
+    if (synced.length) {
+      const remaining = pending.filter(k => !synced.includes(k));
+      localStorage.setItem('wu_pending_sync', JSON.stringify(remaining));
+    }
+    return synced.length;
+  },
+
+  // ─── Helpers para los datos principales ───
+  async getQuotes()   { return await this.get('wu_quotes')   || []; },
+  async getClients()  { return await this.get('wu_clients')  || []; },
+  async getCatalog()  { return await this.get('wu_catalog')  || []; },
+  async getCombos()   { return await this.get('wu_combos')   || []; },
+  async getExpenses() { return await this.get('wu_expenses') || []; },
+  async getComms()    { return await this.get('wu_commissions') || []; },
+  async getNotion()   { return await this.get('wu_notion')   || {}; },
+  async getExpCat()   { return await this.get('wu_expense_catalog') || []; },
+  async getCounter()  { return await this.get('wu_counter')  || 1; },
+
+  async saveQuotes(v)   { return await this.set('wu_quotes', v); },
+  async saveClients(v)  { return await this.set('wu_clients', v); },
+  async saveCatalog(v)  { return await this.set('wu_catalog', v); },
+  async saveCombos(v)   { return await this.set('wu_combos', v); },
+  async saveExpenses(v) { return await this.set('wu_expenses', v); },
+  async saveComms(v)    { return await this.set('wu_commissions', v); },
+  async saveNotion(v)   { return await this.set('wu_notion', v); },
+  async saveExpCat(v)   { return await this.set('wu_expense_catalog', v); },
+  async saveCounter(v)  { return await this.set('wu_counter', v); },
+
+  // ─── Eventos (notifica cuando cambia un key) ───
+  on(key, fn)  { if (!this._listeners[key]) this._listeners[key]=[]; this._listeners[key].push(fn); },
+  off(key, fn) { if (this._listeners[key]) this._listeners[key]=this._listeners[key].filter(f=>f!==fn); },
+  _emit(key, val) { (this._listeners[key]||[]).forEach(fn=>fn(val)); },
+
+  // ─── Estado de conexión ───
+  isOnline() { return this._online; },
+
+  // ─── Init: carga datos frescos + sync pendientes ───
+  async init(onReady) {
+    // Sincroniza datos pendientes offline primero
+    await this.syncPending();
+    if (onReady) onReady();
+  }
+};
+
+// Monitorear conexión
+window.addEventListener('online',  () => { WU_DB._online=true;  WU_DB.syncPending(); });
+window.addEventListener('offline', () => { WU_DB._online=false; });
+
+
+// Render inmediato con datos locales (luego se reemplaza con KV)
 let catalog = JSON.parse(localStorage.getItem('wu_catalog') || 'null') || DEFAULT_CATALOG;
 let quotes = JSON.parse(localStorage.getItem('wu_quotes') || '[]');
 let clients = JSON.parse(localStorage.getItem('wu_clients') || '[]');
@@ -1092,7 +1211,7 @@ function switchTab(tab){
 // ══════════════════════════════════════════════════
 function newQuote(){
   quoteCounter++;
-  localStorage.setItem('wu_counter', quoteCounter);
+  WU_DB.saveCounter( quoteCounter);
   const today = new Date();
   const valid = new Date(today); valid.setDate(valid.getDate()+30);
   currentQuote = {
@@ -1203,7 +1322,7 @@ function saveQuote(){
     if(idx>=0) quotes[idx] = {...currentQuote};
     else quotes.unshift({...currentQuote});
 
-    localStorage.setItem('wu_quotes', JSON.stringify(quotes));
+    WU_DB.saveQuotes(quotes);
     document.getElementById('badge-total').textContent = quotes.length;
 
     // Auto-registrar cliente si es nuevo
@@ -1212,14 +1331,14 @@ function saveQuote(){
       if(!existing){
         const newC = {id:Date.now(), ...currentQuote.client, notionPageId:null};
         clients.unshift(newC);
-        localStorage.setItem('wu_clients', JSON.stringify(clients));
+        WU_DB.saveClients(clients);
         updateClientSelect();
       }
     }
 
     // Sync a Cloudflare KV en background
-    syncKV('wu_quotes', quotes);
-    syncKV('wu_clients', clients);
+    
+    
 
     showToast('✅ Cotización guardada correctamente');
 
@@ -2027,8 +2146,8 @@ function printQuoteById(id){
 function deleteQuote(id){
   if(!confirm('¿Eliminar esta cotización?')) return;
   quotes=quotes.filter(q=>String(q.id)!==String(id));
-  localStorage.setItem('wu_quotes',JSON.stringify(quotes));
-  syncKV('wu_quotes', quotes);
+  WU_DB.saveQuotes(quotes);
+  
   renderList();
 }
 
@@ -2177,7 +2296,7 @@ async function saveNewClient(){
   };
 
   clients.unshift(newClient);
-  localStorage.setItem('wu_clients',JSON.stringify(clients));
+  WU_DB.saveClients(clients);
   updateClientSelect();
 
   // Sync a Notion DB de clientes
@@ -2204,7 +2323,7 @@ async function saveNewClient(){
       if(resp.ok){
         const data=await resp.json();
         newClient.notionPageId=data.id;
-        localStorage.setItem('wu_clients',JSON.stringify(clients));
+        WU_DB.saveClients(clients);
         resultEl.style.cssText='display:block;background:rgba(90,184,122,.1);border:1px solid var(--green);color:var(--green);';
         resultEl.textContent='✅ Cliente sincronizado con Notion';
       } else {
@@ -2237,7 +2356,7 @@ async function saveNewClient(){
 function deleteClient(id){
   if(!confirm('¿Eliminar este cliente?')) return;
   clients=clients.filter(c=>c.id!=id);
-  localStorage.setItem('wu_clients',JSON.stringify(clients));
+  WU_DB.saveClients(clients);
   renderClients();
 }
 
@@ -2351,7 +2470,7 @@ async function importClientsFromNotion(){
 
     // Ordenar alfabéticamente
     clients.sort((a,b)=>a.name.localeCompare(b.name));
-    localStorage.setItem('wu_clients',JSON.stringify(clients));
+    WU_DB.saveClients(clients);
     updateClientSelect();
     renderClients();
 
@@ -2444,7 +2563,7 @@ function saveNotionConfig(){
       relation:document.getElementById('nf-relation').value,
     }
   };
-  localStorage.setItem('wu_notion',JSON.stringify(cfg));
+  WU_DB.saveNotion(cfg);
   notionCfg=cfg;
   updateNotionStatus();
 }
@@ -2840,7 +2959,7 @@ async function importQuotesFromNotion(){
       imported++;
     });
 
-    localStorage.setItem('wu_quotes',JSON.stringify(quotes));
+    WU_DB.saveQuotes(quotes);
     renderList();
 
     resultEl.style.cssText='display:block;background:rgba(90,184,122,.1);border:1px solid var(--green);color:var(--green);padding:6px 10px;border-radius:3px;';
@@ -3009,7 +3128,7 @@ function statusToNotion(s){return{draft:'Total pendiente',sent:'Total pendiente'
         relation:'TRABAJOS DE WALL UP MEDIA 2025',
       }
     };
-    localStorage.setItem('wu_notion',JSON.stringify(cfg));
+    WU_DB.saveNotion(cfg);
     notionCfg=cfg;
   }
 
@@ -3026,6 +3145,18 @@ function statusToNotion(s){return{draft:'Total pendiente',sent:'Total pendiente'
     const q = quotes.find(x=>String(x.id)===String(openId));
     if(q){ loadQuoteIntoEditor(JSON.parse(JSON.stringify(q))); switchTab('editor'); }
   }
+
+  // ─── CARGA FRESCA DESDE KV (sin bloquear el render) ───
+  (async () => {
+    await WU_DB.syncPending(); // sync cualquier cambio offline pendiente
+    const [freshQ, freshC] = await Promise.all([WU_DB.getQuotes(), WU_DB.getClients()]);
+    let changed = false;
+    if(freshQ && freshQ.length > 0){ quotes=freshQ; changed=true; }
+    if(freshC && freshC.length > 0){ clients=freshC; updateClientSelect(); }
+    if(changed){ document.getElementById('badge-total').textContent=quotes.length; renderList(); }
+    const freshExpCat = await WU_DB.getExpCat();
+    if(freshExpCat && freshExpCat.length > 0) localStorage.setItem('wu_expense_catalog', JSON.stringify(freshExpCat));
+  })();
 })();
 </script>
 
