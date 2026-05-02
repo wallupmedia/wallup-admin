@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wall UP Media — Sistema de Cotizaciones</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #080808; --card: #141414; --card2: #1c1c1c; --card3: #222;
@@ -87,12 +87,32 @@ label.field-lbl{font-size:9px;color:var(--gold);letter-spacing:.8px;display:bloc
 .s-sent{background:rgba(90,155,224,.15);color:var(--blue);border:1px solid rgba(90,155,224,.3);}
 .d-none{display:none!important;}
 /* ── GLOBAL NAV ── */
-.gnav{position:fixed;bottom:0;left:0;right:0;background:#0c0c0c;border-top:1px solid var(--border);display:flex;align-items:stretch;height:52px;z-index:1000;padding-bottom:env(safe-area-inset-bottom,0);}
-.gnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;color:var(--gold);transition:color .15s;font-family:'Bebas Neue';font-size:9px;letter-spacing:1px;}
-.gnav a:hover{color:var(--cream);}.gnav a.active{color:var(--orange);}
-.gnav a.active .gi{filter:drop-shadow(0 0 5px rgba(245,152,71,.5));}
-.gnav .gi{font-size:18px;line-height:1;}.gnav .gl{font-size:8px;letter-spacing:1.5px;}
-body{padding-bottom:58px!important;}
+/* ── NAV PILL FLOTANTE ── */
+.gnav{
+  position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+  background:rgba(14,14,14,0.96);
+  border:1px solid rgba(245,152,71,0.25);
+  border-radius:50px;
+  display:flex;align-items:center;
+  height:46px;padding:0 6px;
+  z-index:9000;
+  backdrop-filter:blur(12px);
+  box-shadow:0 4px 24px rgba(0,0,0,0.7),0 0 0 1px rgba(245,152,71,0.08);
+  gap:2px;
+}
+.gnav a{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:56px;height:36px;border-radius:40px;
+  text-decoration:none;color:#A08C6E;
+  transition:all .2s;font-family:'Bebas Neue';font-size:8px;letter-spacing:1.5px;
+  gap:1px;
+}
+.gnav a:hover:not(.active){background:rgba(255,255,255,0.05);color:var(--cream);}
+.gnav a.active{background:rgba(245,152,71,0.15);color:#F59847;}
+.gnav a.active .gi{filter:drop-shadow(0 0 6px rgba(245,152,71,0.6));}
+.gnav .gi{font-size:16px;line-height:1;}
+.gnav .gl{font-size:7px;letter-spacing:1.5px;}
+body{padding-bottom:70px!important;}
 
 .qt-num{font-family:'Bebas Neue';letter-spacing:1px;color:var(--orange);font-size:13px;}
 .qt-client{color:var(--cream);font-size:11px;}
@@ -104,7 +124,7 @@ body{padding-bottom:58px!important;}
 .no-data{text-align:center;padding:60px;color:var(--gold);font-size:11px;line-height:2.5;}
 
 /* ═══ EDITOR DE COTIZACIÓN ═══ */
-.editor-view{display:flex;height:calc(100vh - 85px);}
+.editor-view{display:flex;height:calc(100vh - 145px);}
 .editor-left{flex:1;overflow-y:auto;padding:20px;border-right:1px solid var(--border);}
 .editor-right{width:320px;min-width:320px;background:var(--card);overflow-y:auto;padding:16px;}
 
@@ -203,14 +223,11 @@ body{padding-bottom:58px!important;}
   height:3px;background:linear-gradient(90deg,#F59847,#A08C6E,#F59847);
 }
 .pf-logo-area{}
-.pf-contact{font-size:8px;color:#A08C6E;margin-top:6px;line-height:2;letter-spacing:.3px;}
+.pf-contact{font-size:9px;color:#F0E8DC;margin-top:8px;line-height:2;letter-spacing:.3px;}
 
 /* Bloque derecho del header */
 .pf-doc-info{text-align:right;}
-.pf-doc-type{
-  font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:4px;
-  color:#F59847;margin-bottom:4px;opacity:.9;
-}
+.pf-doc-type{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:4px;color:#F59847;margin-bottom:4px;}
 .pf-doc-num{
   font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:3px;
   color:#ffffff;line-height:1;
@@ -279,16 +296,13 @@ body{padding-bottom:58px!important;}
 }
 .pf-group-sub{font-size:9px;color:#A08C6E;font-family:'DM Mono',monospace;}
 
-.pf-item-name{
-  font-size:11px;font-weight:600;color:#0a0a0a;
-  margin-bottom:3px;letter-spacing:.2px;
-}
+.pf-item-name{font-size:12px;font-weight:600;color:#0a0a0a;margin-bottom:3px;letter-spacing:.2px;}
 .pf-item-code{
   display:inline-block;font-size:7px;color:#A08C6E;
   letter-spacing:1.5px;background:#f5f5f5;
   padding:1px 5px;border-radius:2px;margin-bottom:3px;
 }
-.pf-item-desc{font-size:8.5px;color:#888;line-height:1.7;margin-top:2px;}
+.pf-item-desc{font-size:9.5px;color:#666;line-height:1.7;margin-top:3px;}
 .pf-item-qty{font-size:9px;color:#555;text-align:right;white-space:nowrap;}
 .pf-item-unit-price{font-size:9px;color:#888;text-align:right;white-space:nowrap;}
 .pf-item-total{font-size:11px;font-weight:700;color:#0a0a0a;text-align:right;white-space:nowrap;}
@@ -318,21 +332,13 @@ body{padding-bottom:58px!important;}
 .pf-footer{padding:24px 36px;border-top:1px solid #f0f0f0;}
 .pf-footer-split{display:flex;gap:28px;}
 .pf-policies{flex:1;}
-.pf-policies-title{
-  font-size:7px;letter-spacing:3px;color:#A08C6E;
-  text-transform:uppercase;margin-bottom:8px;font-weight:700;
-  display:flex;align-items:center;gap:6px;
-}
-.pf-policies-title::after{content:'';flex:1;height:1px;background:#f0f0f0;}
-.pf-policies-text{font-size:7.5px;color:#999;line-height:2;white-space:pre-line;}
+.pf-policies-title{font-size:8px;letter-spacing:2px;color:#F59847;text-transform:uppercase;margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:6px;}
+.pf-policies-title::after{content:'';flex:1;height:1px;background:#F59847;opacity:.3;}
+.pf-policies-text{font-size:9px;color:#555;line-height:2;white-space:pre-line;}
 .pf-bank{width:220px;flex-shrink:0;}
-.pf-bank-title{
-  font-size:7px;letter-spacing:3px;color:#A08C6E;
-  text-transform:uppercase;margin-bottom:8px;font-weight:700;
-  display:flex;align-items:center;gap:6px;
-}
-.pf-bank-title::after{content:'';flex:1;height:1px;background:#f0f0f0;}
-.pf-bank-text{font-size:7.5px;color:#999;line-height:2.2;}
+.pf-bank-title{font-size:8px;letter-spacing:2px;color:#F59847;text-transform:uppercase;margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:6px;}
+.pf-bank-title::after{content:'';flex:1;height:1px;background:#F59847;opacity:.3;}
+.pf-bank-text{font-size:9px;color:#444;line-height:2.2;}
 .pf-bank-item{display:flex;justify-content:space-between;font-size:7.5px;padding:2px 0;}
 .pf-bank-label{color:#888;}
 .pf-bank-num{color:#555;font-family:'DM Mono';letter-spacing:.5px;}
@@ -343,11 +349,7 @@ body{padding-bottom:58px!important;}
   margin-top:20px;padding-top:16px;border-top:1px dashed #eee;
 }
 .pf-sig-block{text-align:center;}
-.pf-sig-line{
-  width:180px;border-top:1px solid #ccc;
-  padding-top:6px;font-size:7.5px;color:#999;text-align:center;
-  letter-spacing:.5px;
-}
+.pf-sig-line{width:180px;border-top:2px solid #F59847;padding-top:8px;font-size:7.5px;color:#999;text-align:center;letter-spacing:.5px;}
 .pf-sig-role{font-size:7px;color:#A08C6E;letter-spacing:1px;margin-top:2px;}
 
 /* Bottom stripe */
@@ -394,7 +396,46 @@ body{padding-bottom:58px!important;}
 
 /* Notion sync icon */
 .sync-icon{font-size:10px;animation:spin 1.5s linear infinite;display:inline-block;}
-@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}</style>
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+/* ═══════════════════
+   RESPONSIVE
+═══════════════════ */
+@media (max-width:768px){
+  .main{flex-direction:column;}
+  .catalog{width:100%;min-width:unset;height:auto;max-height:40vh;border-right:none;border-bottom:1px solid var(--border);}
+  .catalog-panel{width:100%;min-width:unset;height:auto;max-height:35vh;border-right:none;border-bottom:1px solid var(--border);}
+  .builder-panel{height:auto;min-height:300px;}
+  .editor-view{flex-direction:column;height:auto;}
+  .editor-left{padding:12px;}
+  .editor-right{width:100%;min-width:unset;border-left:none;border-top:1px solid var(--border);}
+  .metrics-panel{width:100%;min-width:unset;height:auto;border-left:none;border-top:1px solid var(--border);}
+  .tabs{overflow-x:auto;flex-wrap:nowrap;padding-bottom:0;}
+  .tab{white-space:nowrap;font-size:10px;padding:5px 10px;}
+  header{padding:8px 12px;flex-wrap:wrap;gap:6px;}
+  .hdr-right{flex-wrap:wrap;gap:4px;}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .form-grid.cols2,.form-grid.cols3,.form-grid.cols4{grid-template-columns:1fr;}
+  .charts-grid{grid-template-columns:1fr;}
+  .editor-items-wrap{overflow-x:auto;}
+  .quote-table{font-size:10px;}
+  .quote-table th,.quote-table td{padding:6px 8px;}
+  .gnav{width:auto;min-width:200px;}
+  .preview-frame{padding:0;}
+  .pf-header{padding:16px 20px 14px;}
+  .pf-body{padding:20px;}
+  .pf-totals-wrap{padding:14px 20px;}
+  .pf-footer{padding:14px 20px;}
+  .pf-bottom-stripe{padding:8px 20px;}
+  .pf-footer-split{flex-direction:column;}
+  .pf-bank{width:100%;}
+}
+@media (max-width:480px){
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .kpi-val{font-size:18px;}
+  .gnav .gl{display:none;}
+  .gnav a{width:44px;}
+}
+</style>
 </head>
 <body>
 
@@ -741,27 +782,21 @@ Cuenta BHD: 31937430015</textarea>
           <span style="font-size:8px;color:var(--border2);font-family:'DM Mono';letter-spacing:0;margin-left:4px;">no aparecen en el PDF</span>
         </div>
 
-        <!-- Form -->
+        <!-- Form — conectado al catálogo de gastos -->
         <div style="background:var(--bg);border:1px solid var(--border2);border-radius:3px;padding:8px;margin-bottom:6px;">
           <div style="margin-bottom:5px;">
-            <label class="field-lbl">CATEGORÍA</label>
-            <select class="inp inp-sm" id="ie-cat">
-              <option value="subcontrato-foto">Sub. Fotógrafo</option>
-              <option value="subcontrato-video">Sub. Camarógrafo</option>
-              <option value="asistente">Asistente</option>
-              <option value="transporte">Transporte</option>
-              <option value="equipo">Equipo / Alquiler</option>
-              <option value="album-caja">Álbum / Caja</option>
-              <option value="otro">Otro</option>
+            <label class="field-lbl">ARTÍCULO DEL CATÁLOGO</label>
+            <select class="inp inp-sm" id="ie-catalog-item" onchange="onIECatalogSelect()">
+              <option value="">— Seleccionar del catálogo —</option>
             </select>
           </div>
           <div style="margin-bottom:5px;">
-            <label class="field-lbl">DESCRIPCIÓN</label>
-            <input class="inp inp-sm" id="ie-desc" placeholder="Ej: Juan Pérez — 8h fotografía">
+            <label class="field-lbl">DESCRIPCIÓN (opcional)</label>
+            <input class="inp inp-sm" id="ie-desc" placeholder="Ej: Juan Pérez — día completo">
           </div>
           <div style="margin-bottom:6px;">
-            <label class="field-lbl">MONTO RD$</label>
-            <input class="inp inp-sm" id="ie-amount" type="number" step="100" placeholder="0" style="text-align:right">
+            <label class="field-lbl">MONTO RD$ <span style="color:var(--gold);font-size:8px">(se llena automático del catálogo)</span></label>
+            <input class="inp inp-sm" id="ie-amount" type="number" step="100" placeholder="0" style="text-align:right;border-color:var(--orange);">
           </div>
           <button class="btn btn-blue btn-sm" style="width:100%" onclick="addInternalExpense()">+ AGREGAR GASTO</button>
         </div>
@@ -796,6 +831,7 @@ Cuenta BHD: 31937430015</textarea>
     <div style="margin-left:auto;display:flex;gap:6px;">
       <button class="btn btn-outline btn-sm" onclick="switchTab('editor')">← VOLVER A EDITAR</button>
       <button class="btn btn-blue btn-sm" onclick="printQuote()">🖨 IMPRIMIR / PDF</button>
+      <button class="btn btn-sm" onclick="downloadPDF()" style="background:#5ab87a;color:#080808;border:none;font-family:'Bebas Neue';letter-spacing:1.5px;font-size:11px;padding:6px 14px;border-radius:3px;cursor:pointer;">⬇ DESCARGAR PDF</button>
     </div>
   </div>
   <div style="padding:20px;background:var(--bg);min-height:calc(100vh - 140px);">
@@ -1137,6 +1173,7 @@ function loadQuoteIntoEditor(q){
   recalcEditor();
   renderPayHistory();
   renderIEList();
+  populateIECatalog();
   updateGroupBtn();
   updateClientSelect();
 }
@@ -1774,9 +1811,12 @@ function buildPreview(){
     <div class="pf-header">
       <div class="pf-logo-area">
         <img src="https://wallupmedia.github.io/wallup-admin/assets/logo-horizontal-naranja.png"
-             alt="Wall UP Media" style="height:64px;width:auto;">
+             alt="Wall UP Media" style="height:60px;width:auto;">
         <div class="pf-contact">
-          849-268-0042 &nbsp;·&nbsp; wallupmedia@gmail.com &nbsp;·&nbsp; www.wallupmedia.com
+          <span style="color:#F59847">📞</span> 849-268-0042 &nbsp;&nbsp;
+          <span style="color:#F59847">✉</span> wallupmedia@gmail.com<br>
+          <span style="color:#F59847">🌐</span> www.wallupmedia.com &nbsp;&nbsp;
+          <span style="color:#F59847">📍</span> Santiago, República Dominicana
         </div>
       </div>
       <div class="pf-doc-info">
@@ -1853,12 +1893,12 @@ function buildPreview(){
       ${modVis.signature?`
       <div class="pf-signature">
         <div class="pf-sig-block">
-          <div class="pf-sig-line">John Davis Lopez Martínez</div>
-          <div class="pf-sig-role">WALL UP MEDIA</div>
+          <div style="font-family:'Caveat',cursive;font-size:28px;color:#0a0a0a;font-weight:700;text-align:center;margin-bottom:4px;letter-spacing:1px;">John López</div>
+          <div class="pf-sig-line"></div>
+          <div class="pf-sig-role">WALL UP MEDIA · Fotografía & Video</div>
         </div>
-        <div style="text-align:right;font-size:7.5px;color:#bbb;font-style:italic;max-width:240px;line-height:1.7;">
-          "Es nuestra responsabilidad cumplir con todo lo ofrecido y<br>
-          entregar con la calidad que nos distingue."
+        <div style="text-align:right;font-size:9px;color:#888;font-style:italic;max-width:240px;line-height:1.8;">
+          "Es nuestra responsabilidad cumplir con todo lo ofrecido y entregar con la calidad que nos distingue."
         </div>
       </div>`:''}
     </div>`:''}
@@ -1878,80 +1918,11 @@ function printQuote(){
   buildPreview();
   const content=document.getElementById('preview-container').innerHTML;
   const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{background:#fff;font-family:'DM Mono',monospace;}
-    @media print{body{margin:0;}@page{margin:0;size:A4;}}
-    .preview-frame{max-width:800px;margin:0 auto;font-size:11px;overflow:hidden;}
-    /* Header negro */
-    .pf-header{background:#0a0a0a;padding:24px 32px 20px;display:flex;align-items:center;justify-content:space-between;position:relative;}
-    .pf-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#F59847,#A08C6E,#F59847);}
-    .pf-contact{font-size:8px;color:#A08C6E;margin-top:6px;line-height:2;letter-spacing:.3px;}
-    .pf-doc-info{text-align:right;}
-    .pf-doc-type{font-family:'Bebas Neue';font-size:9px;letter-spacing:4px;color:#F59847;margin-bottom:4px;}
-    .pf-doc-num{font-family:'Bebas Neue';font-size:32px;letter-spacing:3px;color:#fff;line-height:1;}
-    .pf-doc-dates{font-size:8px;color:#A08C6E;margin-top:8px;line-height:2.2;letter-spacing:.3px;}
-    .pf-doc-dates strong{color:#F59847;}
-    /* Cuerpo */
-    .pf-body{padding:28px 32px;}
-    .pf-billing{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid #f0f0f0;}
-    .pf-billed-lbl{font-size:7px;letter-spacing:3px;color:#A08C6E;text-transform:uppercase;margin-bottom:6px;font-weight:700;}
-    .pf-client-name{font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;color:#0a0a0a;margin-bottom:4px;}
-    .pf-client-sub{font-size:9px;color:#888;line-height:2;}
-    .pf-service-badge{display:inline-block;background:#0a0a0a;color:#F59847;font-size:7px;letter-spacing:2px;padding:4px 10px;border-radius:2px;font-family:'Bebas Neue';margin-top:8px;}
-    /* Tabla */
-    .pf-table{width:100%;border-collapse:collapse;}
-    .pf-table thead th{background:#0a0a0a;color:#F59847;padding:9px 12px;font-family:'Bebas Neue';font-size:8px;letter-spacing:2.5px;text-align:left;border:none;}
-    .pf-table thead th.r{text-align:right;}
-    .pf-table tbody tr:nth-child(even){background:#fafafa;}
-    .pf-table tbody td{padding:12px 12px;border-bottom:1px solid #f2f2f2;vertical-align:top;}
-    .pf-table tbody tr:last-child td{border-bottom:none;}
-    .pf-group-row td{background:#f5f0e8!important;padding:7px 12px!important;border-bottom:1px solid #F59847!important;}
-    .pf-group-name{font-family:'Bebas Neue';font-size:12px;letter-spacing:2px;color:#0a0a0a;}
-    .pf-group-sub{font-size:9px;color:#A08C6E;font-family:'DM Mono';}
-    .pf-item-name{font-size:11px;font-weight:600;color:#0a0a0a;margin-bottom:3px;letter-spacing:.2px;}
-    .pf-item-code{display:inline-block;font-size:7px;color:#A08C6E;letter-spacing:1.5px;background:#f5f5f5;padding:1px 5px;border-radius:2px;margin-bottom:3px;}
-    .pf-item-desc{font-size:8px;color:#888;line-height:1.7;margin-top:2px;white-space:pre-line;}
-    .pf-item-qty{font-size:9px;color:#555;text-align:right;white-space:nowrap;}
-    .pf-item-unit-price{font-size:9px;color:#888;text-align:right;white-space:nowrap;}
-    .pf-item-total{font-size:11px;font-weight:700;color:#0a0a0a;text-align:right;white-space:nowrap;}
-    /* Totales */
-    .pf-totals-wrap{background:#fafafa;border-top:1px solid #eee;padding:18px 32px;}
-    .pf-totals-inner{display:flex;justify-content:flex-end;}
-    .pf-totals-box{width:250px;}
-    .pf-total-row{display:flex;justify-content:space-between;padding:4px 0;font-size:9px;color:#777;}
-    .pf-total-row span:last-child{font-family:'DM Mono';}
-    .pf-total-main{background:#0a0a0a;padding:12px 16px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
-    .pf-total-main-lbl{font-family:'Bebas Neue';font-size:15px;letter-spacing:3px;color:#F59847;}
-    .pf-total-main-val{font-family:'DM Mono';font-size:20px;font-weight:700;color:#fff;}
-    /* Footer */
-    .pf-footer{padding:20px 32px;border-top:1px solid #f0f0f0;}
-    .pf-footer-split{display:flex;gap:24px;}
-    .pf-policies{flex:1;}
-    .pf-bank{width:210px;flex-shrink:0;}
-    .pf-policies-title,.pf-bank-title{font-size:7px;letter-spacing:3px;color:#A08C6E;text-transform:uppercase;margin-bottom:8px;font-weight:700;display:flex;align-items:center;gap:6px;}
-    .pf-policies-title::after,.pf-bank-title::after{content:'';flex:1;height:1px;background:#f0f0f0;}
-    .pf-policies-text,.pf-bank-text{font-size:7.5px;color:#999;line-height:2;white-space:pre-line;}
-    .pf-signature{display:flex;justify-content:space-between;align-items:flex-end;margin-top:18px;padding-top:14px;border-top:1px dashed #eee;}
-    .pf-sig-block{text-align:center;}
-    .pf-sig-line{width:180px;border-top:1px solid #ccc;padding-top:6px;font-size:7.5px;color:#999;letter-spacing:.5px;}
-    .pf-sig-role{font-size:7px;color:#A08C6E;letter-spacing:1px;margin-top:2px;}
-    /* Bottom stripe */
-    .pf-bottom-stripe{background:#0a0a0a;padding:8px 32px;display:flex;justify-content:space-between;align-items:center;}
-    .pf-bottom-tagline{font-size:7.5px;color:#A08C6E;letter-spacing:1.5px;font-style:italic;}
-    .pf-bottom-web{font-size:7.5px;color:#F59847;letter-spacing:1px;}
-  </style></head><body>${content}
-<nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html" class="active"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
-</body></html>`);
+  w.document.write(getPrintHTML(content));
   w.document.close();
   setTimeout(()=>{w.focus();w.print();},600);
 }
 
-// ══════════════════════════════════════════════════
-// LISTA DE COTIZACIONES
-// ══════════════════════════════════════════════════
 function sortList(col){
   if(listSort.col===col) listSort.dir = listSort.dir==='asc'?'desc':'asc';
   else { listSort.col=col; listSort.dir='asc'; }
@@ -2607,6 +2578,90 @@ async function syncAllToNotion(){
 // ══════════════════════════════════════════════════
 // WHATSAPP COPY
 // ══════════════════════════════════════════════════
+function downloadPDF(){
+  buildPreview();
+  const content=document.getElementById('preview-container').innerHTML;
+  const clientName=(document.getElementById('f-client-name')?.value||'cliente').replace(/[^a-z0-9]/gi,'_');
+  const num=document.getElementById('f-num')?.value||'EST';
+  const fileName=`${num}_${clientName}.pdf`;
+  const w=window.open('','_blank');
+  w.document.write(getPrintHTML(content));
+  w.document.close();
+  // Auto-print and auto-close
+  w.addEventListener('load', ()=>{
+    w.document.title = fileName;
+    setTimeout(()=>{w.focus();w.print();w.addEventListener('afterprint',()=>w.close());},400);
+  });
+}
+
+function getPrintHTML(content){
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Wall UP Media</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:#fff;font-family:'DM Mono',monospace;}
+    @media print{
+      body{margin:0;}
+      @page{margin:0;size:A4;}
+      .no-print{display:none!important;}
+    }
+    .preview-frame{max-width:100%;margin:0;font-size:11px;overflow:hidden;}
+    .pf-header{background:#0a0a0a;padding:22px 30px 18px;display:flex;align-items:center;justify-content:space-between;position:relative;}
+    .pf-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#F59847,#A08C6E,#F59847);}
+    .pf-contact{font-size:8.5px;color:#F0E8DC;margin-top:7px;line-height:2.2;letter-spacing:.3px;}
+    .pf-doc-info{text-align:right;}
+    .pf-doc-type{font-family:'Bebas Neue';font-size:11px;letter-spacing:4px;color:#F59847;margin-bottom:4px;}
+    .pf-doc-num{font-family:'Bebas Neue';font-size:32px;letter-spacing:3px;color:#fff;line-height:1;}
+    .pf-doc-dates{font-size:8.5px;color:#A08C6E;margin-top:8px;line-height:2.4;letter-spacing:.3px;}
+    .pf-doc-dates strong{color:#F59847;}
+    .pf-body{padding:26px 30px;}
+    .pf-billing{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid #f0f0f0;}
+    .pf-billed-lbl{font-size:7px;letter-spacing:3px;color:#A08C6E;text-transform:uppercase;margin-bottom:6px;font-weight:700;}
+    .pf-client-name{font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;color:#0a0a0a;margin-bottom:4px;}
+    .pf-client-sub{font-size:9.5px;color:#777;line-height:2;}
+    .pf-service-badge{display:inline-block;background:#0a0a0a;color:#F59847;font-size:7px;letter-spacing:2px;padding:4px 10px;border-radius:2px;font-family:'Bebas Neue';margin-top:8px;}
+    .pf-table{width:100%;border-collapse:collapse;}
+    .pf-table thead th{background:#0a0a0a;color:#F59847;padding:10px 12px;font-family:'Bebas Neue';font-size:9px;letter-spacing:2.5px;text-align:left;border:none;}
+    .pf-table thead th.r{text-align:right;}
+    .pf-table tbody tr:nth-child(even){background:#fafafa;}
+    .pf-table tbody td{padding:13px 12px;border-bottom:1px solid #f2f2f2;vertical-align:top;}
+    .pf-table tbody tr:last-child td{border-bottom:none;}
+    .pf-group-row td{background:#f5f0e8!important;padding:8px 12px!important;border-bottom:1px solid #F59847!important;}
+    .pf-group-name{font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;color:#0a0a0a;}
+    .pf-group-sub{font-size:9px;color:#A08C6E;font-family:'DM Mono';}
+    .pf-item-name{font-size:12px;font-weight:600;color:#0a0a0a;margin-bottom:3px;letter-spacing:.2px;}
+    .pf-item-code{display:inline-block;font-size:7px;color:#A08C6E;letter-spacing:1.5px;background:#f5f5f5;padding:1px 5px;border-radius:2px;margin-bottom:3px;}
+    .pf-item-desc{font-size:9.5px;color:#666;line-height:1.7;margin-top:3px;white-space:pre-line;}
+    .pf-item-qty{font-size:9.5px;color:#555;text-align:right;white-space:nowrap;}
+    .pf-item-unit-price{font-size:9px;color:#888;text-align:right;white-space:nowrap;}
+    .pf-item-total{font-size:12px;font-weight:700;color:#0a0a0a;text-align:right;white-space:nowrap;}
+    .pf-totals-wrap{background:#fafafa;border-top:1px solid #eee;padding:18px 30px;}
+    .pf-totals-inner{display:flex;justify-content:flex-end;}
+    .pf-totals-box{width:260px;}
+    .pf-total-row{display:flex;justify-content:space-between;padding:5px 0;font-size:10px;color:#777;}
+    .pf-total-row span:last-child{font-family:'DM Mono';}
+    .pf-total-main{background:#0a0a0a;padding:14px 18px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+    .pf-total-main-lbl{font-family:'Bebas Neue';font-size:16px;letter-spacing:3px;color:#F59847;}
+    .pf-total-main-val{font-family:'DM Mono';font-size:22px;font-weight:700;color:#fff;}
+    .pf-footer{padding:20px 30px;border-top:1px solid #f0f0f0;}
+    .pf-footer-split{display:flex;gap:24px;}
+    .pf-policies{flex:1;}
+    .pf-bank{width:220px;flex-shrink:0;}
+    .pf-policies-title,.pf-bank-title{font-size:8px;letter-spacing:2px;color:#F59847;text-transform:uppercase;margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:6px;}
+    .pf-policies-title::after,.pf-bank-title::after{content:'';flex:1;height:1px;background:#F59847;opacity:.3;}
+    .pf-policies-text{font-size:9px;color:#555;line-height:2;white-space:pre-line;}
+    .pf-bank-text{font-size:9px;color:#444;line-height:2.2;}
+    .pf-signature{display:flex;justify-content:space-between;align-items:flex-end;margin-top:18px;padding-top:14px;border-top:1px dashed #eee;}
+    .pf-sig-block{text-align:center;}
+    .pf-sig-line{width:180px;border-top:2px solid #F59847;padding-top:6px;font-size:7.5px;color:#999;letter-spacing:.5px;}
+    .pf-sig-role{font-size:7px;color:#A08C6E;letter-spacing:1px;margin-top:2px;}
+    .pf-bottom-stripe{background:#0a0a0a;padding:10px 30px;display:flex;justify-content:space-between;align-items:center;}
+    .pf-bottom-tagline{font-size:8px;color:#A08C6E;letter-spacing:1.5px;font-style:italic;}
+    .pf-bottom-web{font-size:8px;color:#F59847;letter-spacing:1px;}
+  </style></head><body>${content}</body></html>`;
+}
+
 function copyWhatsApp(){
   if(!currentQuote&&edItems.length===0){alert('No hay cotización activa.');return;}
   const name=document.getElementById('f-client-name').value||'cliente';
@@ -2814,17 +2869,67 @@ async function importQuotesFromNotion(){
 // ══════════════════════════════════════════════════
 // GASTOS INTERNOS DE LA COTIZACIÓN
 // ══════════════════════════════════════════════════
+function populateIECatalog(){
+  const sel = document.getElementById('ie-catalog-item');
+  if(!sel) return;
+  // Load expense catalog from localStorage
+  const cat = JSON.parse(localStorage.getItem('wu_expense_catalog') || 'null') || [];
+  const curr = sel.value;
+  if(cat.length === 0){
+    sel.innerHTML = '<option value="">— Catálogo vacío (configura en Calculadora → Gastos) —</option>';
+    return;
+  }
+  // Group by category
+  const groups = {};
+  cat.forEach(e => {
+    if(!groups[e.cat]) groups[e.cat] = [];
+    groups[e.cat].push(e);
+  });
+  sel.innerHTML = '<option value="">— Seleccionar del catálogo —</option>';
+  Object.entries(groups).forEach(([grp, items]) => {
+    const og = document.createElement('optgroup');
+    og.label = grp;
+    items.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = e.id;
+      opt.textContent = `${e.name} — RD$${Number(e.price).toLocaleString('es-DO')}`;
+      opt.dataset.price = e.price;
+      opt.dataset.name = e.name;
+      opt.dataset.cat = e.cat;
+      og.appendChild(opt);
+    });
+    sel.appendChild(og);
+  });
+  if(curr) sel.value = curr;
+}
+
+function onIECatalogSelect(){
+  const sel = document.getElementById('ie-catalog-item');
+  const opt = sel.options[sel.selectedIndex];
+  if(opt && opt.dataset.price){
+    document.getElementById('ie-amount').value = opt.dataset.price;
+  }
+}
+
 function addInternalExpense(){
   const amount=parseFloat(document.getElementById('ie-amount').value)||0;
   if(amount<=0){showToast('⚠️ Ingresa un monto válido.');return;}
   if(!currentQuote) return;
   if(!currentQuote.internalExpenses) currentQuote.internalExpenses=[];
+  const sel = document.getElementById('ie-catalog-item');
+  const opt = sel?.options[sel?.selectedIndex];
+  const itemName = opt?.dataset?.name || '';
+  const itemCat  = opt?.dataset?.cat  || 'Otro';
+  const desc = document.getElementById('ie-desc').value;
   currentQuote.internalExpenses.push({
     id:'IE-'+Date.now(),
-    cat:document.getElementById('ie-cat').value,
-    desc:document.getElementById('ie-desc').value,
+    cat: itemCat,
+    name: itemName,
+    desc: desc || itemName,
     amount,
   });
+  // Reset
+  document.getElementById('ie-catalog-item').value = '';
   document.getElementById('ie-amount').value='';
   document.getElementById('ie-desc').value='';
   renderIEList();
@@ -2928,6 +3033,13 @@ function statusToNotion(s){return{draft:'Total pendiente',sent:'Total pendiente'
   updateNotionStatus();
   renderList();
   loadNotionConfig();
+  // Auto-open quote if coming from Pipeline
+  const openId = localStorage.getItem('wu_open_quote');
+  if(openId){
+    localStorage.removeItem('wu_open_quote');
+    const q = quotes.find(x=>String(x.id)===String(openId));
+    if(q){ loadQuoteIntoEditor(JSON.parse(JSON.stringify(q))); switchTab('editor'); }
+  }
 })();
 </script>
 </body>
