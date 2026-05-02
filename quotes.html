@@ -269,7 +269,7 @@ body{padding-bottom:58px!important;}
 
 <!-- HEADER -->
 <header>
-  <div class="logo">WALL <span>UP</span> MEDIA — COTIZACIONES</div>
+  <div style="display:flex;align-items:center;gap:10px;"><img src="assets/logo-horizontal-naranja.png" alt="Wall UP Media" style="height:32px;width:auto;border-radius:4px;"><span style="font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;color:var(--gold);">COTIZACIONES</span></div>
   <div class="hdr-right">
     <div class="notion-status" id="notion-status" onclick="switchTab('notion')">
       <div class="dot"></div>
@@ -1641,8 +1641,9 @@ function buildPreview(){
   <div class="preview-frame">
     <div class="pf-header">
       <div class="pf-logo-area">
-        <div class="pf-logo-name">WALL <span>UP</span> MEDIA</div>
-        <div class="pf-contact">849-268-0042 · wallupmedia@gmail.com · www.wallupmedia.com</div>
+        <img src="https://wallupmedia.github.io/wallup-admin/assets/logo-horizontal-naranja.png" 
+             alt="Wall UP Media" style="height:70px;width:auto;border-radius:6px;">
+        <div class="pf-contact" style="margin-top:6px;">849-268-0042 · wallupmedia@gmail.com · www.wallupmedia.com</div>
       </div>
       <div class="pf-doc-info">
         <div class="pf-doc-type">${type}</div>
@@ -1755,7 +1756,9 @@ function printQuote(){
     .pf-bank{width:200px;flex-shrink:0;}
     .pf-signature{margin-top:20px;padding-top:14px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:flex-end;}
     .pf-sig-line{width:200px;border-top:1px solid #333;padding-top:5px;font-size:8px;color:#666;text-align:center;}
-  </style></head><body>${content}<nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html" class="active"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
+  </style></head><body>${content}
+
+<nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html" class="active"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
 </body></html>`);
   w.document.close();
   setTimeout(()=>{w.focus();w.print();},600);
