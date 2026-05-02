@@ -741,13 +741,13 @@ function addCustomItem(){
 }
 
 function removeItem(uid){
-  comboItems=comboItems.filter(x=>x.uid!==uid);
+  comboItems=comboItems.filter(x=>String(x.uid)!==String(uid));
   renderCombo();
   recalculate();
 }
 
 function updateItem(uid,field,val){
-  const item=comboItems.find(x=>x.uid==uid);
+  const item=comboItems.find(x=>String(x.uid)===String(uid));
   if(!item) return;
   if(field==='qty'||field==='unitPrice'||field==='discount'||field==='cost') val=parseFloat(val)||0;
   item[field]=val;
