@@ -1862,15 +1862,14 @@ function buildPreview(){
   const policies=modVis.policies?document.getElementById('f-policies').value:'';
   const bank=modVis.bank?document.getElementById('f-bank').value:'';
   const t=calcTotals();
-
   const useGroups=(type==='PRESUPUESTO'||type==='PROPUESTA');
+  const serviceType=document.getElementById('f-service-type')?.value||'';
 
-  // Build item rows — groups only render in PRESUPUESTO/PROPUESTA
+  // Build item rows
   const itemRows=(()=>{
     let rows='', itemNum=0;
     edItems.forEach((it,i)=>{
       if(it.type==='group'){
-        // Calculate subtotal for this group
         let groupSub=0;
         for(let j=i+1;j<edItems.length;j++){
           if(edItems[j].type==='group') break;
@@ -1878,11 +1877,11 @@ function buildPreview(){
           groupSub+=(gi.qty||0)*(gi.unitPrice||0)*(1-((gi.disc||0)/100));
         }
         if(useGroups){
-          rows+=`<tr class="pf-group-row">
-            <td colspan="4">
+          rows+=`<tr style="background:#f5f0e8;">
+            <td colspan="${(edColVis.qty?1:0)+(edColVis.uprice?1:0)+2}" style="padding:7px 14px;border-bottom:2px solid #F59847;">
               <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span class="pf-group-name">${esc(it.title||'GRUPO')}</span>
-                <span class="pf-group-sub">Subtotal: RD$${fmtNum(groupSub)}</span>
+                <span style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;color:#080808;">${esc(it.title||'GRUPO')}</span>
+                <span style="font-size:9px;color:#A08C6E;font-family:'DM Mono',monospace;">Subtotal: RD$${fmtNum(groupSub)}</span>
               </div>
             </td>
           </tr>`;
@@ -1891,128 +1890,154 @@ function buildPreview(){
       }
       itemNum++;
       const lt=(it.qty||0)*(it.unitPrice||0)*(1-((it.disc||0)/100));
-      rows+=`<tr>
-        <td style="padding:10px">
-          <div class="pf-item-name">${esc(it.name)||'—'}</div>
-          ${it.code&&edColVis.code?`<div class="pf-item-code">${esc(it.code)}</div>`:''}
-          ${it.desc&&edColVis.desc?`<div class="pf-item-desc">${esc(it.desc)}</div>`:''}
+      rows+=`<tr style="background:${itemNum%2===0?'#f9f9f9':'#ffffff'}">
+        <td style="padding:11px 14px;color:#666;font-size:10px;font-family:'DM Mono',monospace;width:32px;text-align:center;border-bottom:1px solid #f0f0f0;vertical-align:top;">${String(itemNum).padStart(2,'0')}</td>
+        <td style="padding:11px 14px;border-bottom:1px solid #f0f0f0;vertical-align:top;">
+          <div style="font-size:11.5px;font-weight:600;color:#111;margin-bottom:${it.desc?'3px':'0'}">${esc(it.name)||'—'}</div>
+          ${it.code&&edColVis.code?`<div style="font-size:8px;color:#A08C6E;letter-spacing:1px;background:#f5f5f5;display:inline-block;padding:1px 5px;border-radius:2px;margin-bottom:2px;">${esc(it.code)}</div>`:''}
+          ${it.desc&&edColVis.desc?`<div style="font-size:9px;color:#888;line-height:1.6;">${esc(it.desc)}</div>`:''}
         </td>
-        ${edColVis.qty?`<td style="text-align:right;padding:10px;white-space:nowrap;vertical-align:top"><div class="pf-item-qty">${it.qty} ${it.unit||''}</div></td>`:''}
-        ${edColVis.uprice?`<td style="text-align:right;padding:10px;white-space:nowrap;vertical-align:top"><div class="pf-item-price">RD$${fmtNum(it.unitPrice||0)}</div></td>`:''}
-        <td style="text-align:right;padding:10px;white-space:nowrap;vertical-align:top"><div class="pf-item-total">RD$${fmtNum(lt)}</div></td>
+        ${edColVis.uprice?`<td style="padding:11px 14px;text-align:right;border-bottom:1px solid #f0f0f0;vertical-align:top;white-space:nowrap;font-family:'DM Mono',monospace;font-size:10px;color:#555;">RD$${fmtNum(it.unitPrice||0)}</td>`:''}
+        ${edColVis.qty?`<td style="padding:11px 14px;text-align:center;border-bottom:1px solid #f0f0f0;vertical-align:top;white-space:nowrap;font-size:10px;color:#555;">${it.qty}</td>`:''}
+        <td style="padding:11px 14px;text-align:right;border-bottom:1px solid #f0f0f0;vertical-align:top;white-space:nowrap;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:#111;">RD$${fmtNum(lt)}</td>
       </tr>`;
     });
     return rows;
   })();
 
-  const serviceType = document.getElementById('f-service-type')?.value||'';
+  const html=`<div class="preview-frame" style="font-family:'DM Mono',sans-serif;">
 
-  const html=`
-  <div class="preview-frame">
+  <!-- ══ HEADER ══ -->
+  <div style="background:#0a0a0a;padding:28px 36px 0;position:relative;overflow:hidden;min-height:110px;">
+    <!-- Curva naranja decorativa (top-right) -->
+    <div style="position:absolute;top:-30px;right:-30px;width:200px;height:200px;background:#F59847;border-radius:50%;opacity:0.15;"></div>
+    <div style="position:absolute;top:0;right:60px;width:120px;height:120px;background:#F59847;border-radius:50%;opacity:0.1;"></div>
 
-    <!-- HEADER NEGRO -->
-    <div class="pf-header">
-      <div class="pf-logo-area">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1;padding-bottom:24px;">
+      <!-- Logo + empresa -->
+      <div>
         <img src="https://wallupmedia.github.io/wallup-admin/assets/logo-horizontal.png"
-             alt="Wall UP Media" style="height:60px;width:auto;">
-        <div class="pf-contact">
-          <span style="color:#F59847">📞</span> 849-268-0042 &nbsp;&nbsp;
-          <span style="color:#F59847">✉</span> wallupmedia@gmail.com<br>
-          <span style="color:#F59847">🌐</span> www.wallupmedia.com &nbsp;&nbsp;
-          <span style="color:#F59847">📍</span> Santiago, República Dominicana
+             alt="Wall UP Media" style="height:52px;width:auto;margin-bottom:10px;">
+        <div style="font-size:8.5px;color:#A08C6E;line-height:2.2;letter-spacing:.3px;">
+          <div>📞 &nbsp;849-268-0042</div>
+          <div>✉ &nbsp;wallupmedia@gmail.com</div>
+          <div>🌐 &nbsp;www.wallupmedia.com</div>
+          <div>📍 &nbsp;Santiago, República Dominicana</div>
         </div>
       </div>
-      <div class="pf-doc-info">
-        <div class="pf-doc-type">${type}</div>
-        <div class="pf-doc-num">${num}</div>
-        <div class="pf-doc-dates">
-          ${date?`<strong>${formatDate(date)}</strong>`:''}
-          ${valid?`<br>Válido: <strong>${formatDate(valid)}</strong>`:''}
+      <!-- Tipo + número -->
+      <div style="text-align:right;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:4px;color:#F59847;line-height:1;">${type}</div>
+        <div style="margin-top:10px;display:grid;gap:3px;">
+          <div style="display:flex;justify-content:space-between;gap:24px;font-size:9px;">
+            <span style="color:#A08C6E;letter-spacing:.5px;">N° DOCUMENTO:</span>
+            <span style="color:#fff;font-family:'DM Mono',monospace;">${num}</span>
+          </div>
+          ${date?`<div style="display:flex;justify-content:space-between;gap:24px;font-size:9px;">
+            <span style="color:#A08C6E;letter-spacing:.5px;">FECHA:</span>
+            <span style="color:#F59847;font-family:'DM Mono',monospace;">${formatDate(date)}</span>
+          </div>`:''}
+          ${valid?`<div style="display:flex;justify-content:space-between;gap:24px;font-size:9px;">
+            <span style="color:#A08C6E;letter-spacing:.5px;">VÁLIDO HASTA:</span>
+            <span style="color:#F0E8DC;font-family:'DM Mono',monospace;">${formatDate(valid)}</span>
+          </div>`:''}
         </div>
       </div>
     </div>
+    <!-- Línea naranja inferior del header -->
+    <div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#F59847 0%,#A08C6E 60%,transparent 100%);"></div>
+  </div>
 
-    <!-- CUERPO -->
-    <div class="pf-body">
-
-      <!-- FACTURADO A -->
-      <div class="pf-billing">
-        <div>
-          <div class="pf-billed-lbl">Facturado a</div>
-          <div class="pf-client-name">${esc(clientName)||'—'}</div>
-          <div class="pf-client-sub">
-            ${clientPhone?`<span>📞 ${esc(clientPhone)}</span><br>`:''}
-            ${clientEmail?`<span>✉ ${esc(clientEmail)}</span>`:''}
-          </div>
-          ${serviceType?`<div class="pf-service-badge">${esc(serviceType)}</div>`:''}
-        </div>
-      </div>
-
-      <!-- TABLA DE ÍTEMS -->
-      <table class="pf-table">
-        <thead>
-          <tr>
-            <th>PRODUCTO / SERVICIO</th>
-            ${edColVis.qty?'<th class="r">CANT.</th>':''}
-            ${edColVis.uprice?'<th class="r">PRECIO UNIT.</th>':''}
-            <th class="r">MONTO</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${itemRows||'<tr><td colspan="4" style="text-align:center;color:#bbb;padding:28px;font-size:10px;">Sin ítems</td></tr>'}
-        </tbody>
-      </table>
-
-    </div><!-- /pf-body -->
-
-    <!-- TOTALES -->
-    <div class="pf-totals-wrap">
-      <div class="pf-totals-inner">
-        <div class="pf-totals-box">
-          ${t.subtotal!==t.afterDisc?`<div class="pf-total-row"><span>Subtotal</span><span>RD$${fmtNum(t.subtotal)}</span></div>`:''}
-          ${t.globalDisc>0?`<div class="pf-total-row"><span>Descuento ${t.globalDisc}%</span><span style="color:#e05555">-RD$${fmtNum(t.discAmount)}</span></div>`:''}
-          ${edItbis?`<div class="pf-total-row"><span>ITBIS 18%</span><span>RD$${fmtNum(t.itbisAmount)}</span></div>`:''}
-          <div class="pf-total-main">
-            <div class="pf-total-main-lbl">TOTAL</div>
-            <div class="pf-total-main-val">RD$${fmtNum(t.grandTotal)}</div>
-          </div>
-        </div>
+  <!-- ══ BILLING + PAYMENT ══ -->
+  <div style="background:#fff;display:flex;justify-content:space-between;align-items:flex-start;padding:22px 36px;border-bottom:1px solid #f0f0f0;gap:32px;">
+    <!-- Cliente -->
+    <div style="flex:1;">
+      <div style="font-size:7.5px;letter-spacing:3px;color:#F59847;font-weight:700;text-transform:uppercase;margin-bottom:8px;">FACTURADO A</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#080808;margin-bottom:6px;">${esc(clientName)}</div>
+      ${serviceType?`<div style="font-size:9px;color:#888;margin-bottom:4px;font-style:italic;">${esc(serviceType)}</div>`:''}
+      <div style="font-size:9px;color:#666;line-height:2.2;">
+        ${clientPhone?`<div>Teléfono: &nbsp;&nbsp;${esc(clientPhone)}</div>`:''}
+        ${clientEmail?`<div>Email: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${esc(clientEmail)}</div>`:''}
       </div>
     </div>
+    <!-- Datos pago (si hay banco) -->
+    ${bank?`<div style="width:220px;flex-shrink:0;">
+      <div style="font-size:7.5px;letter-spacing:3px;color:#F59847;font-weight:700;text-transform:uppercase;margin-bottom:8px;">DATOS DE PAGO</div>
+      <div style="font-size:9px;color:#555;line-height:2.2;white-space:pre-line;">${esc(bank)}</div>
+    </div>`:''}
+  </div>
 
-    <!-- FOOTER -->
-    ${(policies||bank)?`
-    <div class="pf-footer">
-      <div class="pf-footer-split">
-        ${policies?`<div class="pf-policies">
-          <div class="pf-policies-title">Tenga en cuenta</div>
-          <div class="pf-policies-text">${esc(policies)}</div>
-        </div>`:''}
-        ${bank?`<div class="pf-bank">
-          <div class="pf-bank-title">Datos bancarios</div>
-          <div class="pf-bank-text">${esc(bank)}</div>
-        </div>`:''}
-      </div>
+  <!-- ══ TABLA ══ -->
+  <div style="background:#fff;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="background:#080808;">
+          <th style="padding:10px 14px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:2px;color:#F59847;width:40px;">N°</th>
+          <th style="padding:10px 14px;text-align:left;font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:2px;color:#F59847;">DESCRIPCIÓN DEL SERVICIO</th>
+          ${edColVis.uprice?`<th style="padding:10px 14px;text-align:right;font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:2px;color:#F59847;">PRECIO</th>`:''}
+          ${edColVis.qty?`<th style="padding:10px 14px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:2px;color:#F59847;">CANT.</th>`:''}
+          <th style="padding:10px 14px;text-align:right;font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:2px;color:#F59847;">TOTAL</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${itemRows||`<tr><td colspan="5" style="text-align:center;color:#bbb;padding:32px;font-size:10px;background:#fff;">Sin ítems agregados</td></tr>`}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══ TOTALES + TÉRMINOS ══ -->
+  <div style="background:#fff;display:flex;justify-content:space-between;align-items:flex-start;padding:24px 36px;gap:32px;border-top:1px solid #f0f0f0;">
+    <!-- Términos / Políticas -->
+    <div style="flex:1;">
+      ${policies?`
+      <div style="font-size:8px;font-weight:700;color:#F59847;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Términos y Condiciones</div>
+      <div style="font-size:9px;color:#555;line-height:2;white-space:pre-line;">${esc(policies)}</div>
+      `:`<div style="font-size:11px;color:#bbb;font-style:italic;">Gracias por confiar en Wall UP Media.</div>`}
+
       ${modVis.signature?`
-      <div class="pf-signature">
-        <div class="pf-sig-block">
-          <div style="font-family:'Caveat',cursive;font-size:28px;color:#0a0a0a;font-weight:700;text-align:center;margin-bottom:4px;letter-spacing:1px;">John López</div>
-          <div class="pf-sig-line"></div>
-          <div class="pf-sig-role">WALL UP MEDIA · Fotografía & Video</div>
-        </div>
-        <div style="text-align:right;font-size:9px;color:#888;font-style:italic;max-width:240px;line-height:1.8;">
-          "Es nuestra responsabilidad cumplir con todo lo ofrecido y entregar con la calidad que nos distingue."
+      <div style="margin-top:20px;display:flex;align-items:flex-end;gap:16px;">
+        <div style="text-align:center;">
+          <div style="font-family:'Caveat',cursive;font-size:30px;color:#0a0a0a;font-weight:700;line-height:1;">John López</div>
+          <div style="width:160px;border-top:2px solid #F59847;margin-top:6px;padding-top:5px;font-size:7.5px;color:#A08C6E;letter-spacing:1px;text-align:center;">FIRMA AUTORIZADA</div>
+          <div style="font-size:7px;color:#bbb;margin-top:2px;letter-spacing:.5px;">WALL UP MEDIA</div>
         </div>
       </div>`:''}
-    </div>`:''}
-
-    <!-- STRIPE INFERIOR -->
-    <div class="pf-bottom-stripe">
-      <div class="pf-bottom-tagline">para volver a ese momento, cuando quieras.</div>
-      <div class="pf-bottom-web">wallupmedia.com</div>
     </div>
 
-  </div>`;
+    <!-- Caja de totales -->
+    <div style="width:240px;flex-shrink:0;">
+      ${t.subtotal!==t.afterDisc?`
+      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:10px;color:#777;border-bottom:1px solid #f5f5f5;">
+        <span>Subtotal</span><span style="font-family:'DM Mono',monospace;">RD$${fmtNum(t.subtotal)}</span>
+      </div>`:''}
+      ${t.globalDisc>0?`
+      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:10px;color:#e05555;border-bottom:1px solid #f5f5f5;">
+        <span>Descuento ${t.globalDisc}%</span><span style="font-family:'DM Mono',monospace;">-RD$${fmtNum(t.discAmount)}</span>
+      </div>`:''}
+      ${edItbis?`
+      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:10px;color:#777;border-bottom:1px solid #f5f5f5;">
+        <span>ITBIS (18%)</span><span style="font-family:'DM Mono',monospace;">RD$${fmtNum(t.itbisAmount)}</span>
+      </div>`:''}
+
+      <!-- Total principal — pill naranja como en la referencia -->
+      <div style="background:#F59847;border-radius:40px;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:3px;color:#080808;">TOTAL:</span>
+        <span style="font-family:'DM Mono',monospace;font-size:20px;font-weight:700;color:#080808;">RD$${fmtNum(t.grandTotal)}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FOOTER NEGRO ══ -->
+  <div style="background:#0a0a0a;padding:12px 36px;display:flex;justify-content:space-between;align-items:center;gap:20px;">
+    <div style="display:flex;gap:24px;align-items:center;">
+      <span style="font-size:8px;color:#A08C6E;">📞 849-268-0042</span>
+      <span style="font-size:8px;color:#A08C6E;">✉ wallupmedia@gmail.com</span>
+      <span style="font-size:8px;color:#A08C6E;">📍 Santiago, RD</span>
+    </div>
+    <div style="font-size:8px;color:#A08C6E;font-style:italic;letter-spacing:1px;">para volver a ese momento, cuando quieras.</div>
+  </div>
+
+</div>`;
 
   document.getElementById('preview-container').innerHTML=html;
 }
@@ -2703,68 +2728,16 @@ function getPrintHTML(content){
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
-    body{background:#fff;font-family:'DM Mono',monospace;}
+    html,body{background:#fff;font-family:'DM Mono',monospace;-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;}
     @media print{
       body{margin:0;}
       @page{margin:0;size:A4;}
       .no-print{display:none!important;}
+      .preview-frame{box-shadow:none!important;}
+      *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
     }
-    .preview-frame{max-width:100%;margin:0;font-size:11px;overflow:hidden;}
-    .pf-header{background:#0a0a0a;padding:22px 30px 18px;display:flex;align-items:center;justify-content:space-between;position:relative;}
-    .pf-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#F59847,#A08C6E,#F59847);}
-    .pf-contact{font-size:8.5px;color:#F0E8DC;margin-top:7px;line-height:2.2;letter-spacing:.3px;}
-    .pf-doc-info{text-align:right;}
-    .pf-doc-type{font-family:'Bebas Neue';font-size:11px;letter-spacing:4px;color:#F59847;margin-bottom:4px;}
-    .pf-doc-num{font-family:'Bebas Neue';font-size:32px;letter-spacing:3px;color:#fff;line-height:1;}
-    .pf-doc-dates{font-size:8.5px;color:#A08C6E;margin-top:8px;line-height:2.4;letter-spacing:.3px;}
-    .pf-doc-dates strong{color:#F59847;}
-    .pf-body{padding:26px 30px;}
-    .pf-billing{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid #f0f0f0;}
-    .pf-billed-lbl{font-size:7px;letter-spacing:3px;color:#A08C6E;text-transform:uppercase;margin-bottom:6px;font-weight:700;}
-    .pf-client-name{font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;color:#0a0a0a;margin-bottom:4px;}
-    .pf-client-sub{font-size:9.5px;color:#777;line-height:2;}
-    .pf-service-badge{display:inline-block;background:#0a0a0a;color:#F59847;font-size:7px;letter-spacing:2px;padding:4px 10px;border-radius:2px;font-family:'Bebas Neue';margin-top:8px;}
-    .pf-table{width:100%;border-collapse:collapse;}
-    .pf-table thead th{background:#0a0a0a;color:#F59847;padding:10px 12px;font-family:'Bebas Neue';font-size:9px;letter-spacing:2.5px;text-align:left;border:none;}
-    .pf-table thead th.r{text-align:right;}
-    .pf-table tbody tr:nth-child(even){background:#fafafa;}
-    .pf-table tbody td{padding:13px 12px;border-bottom:1px solid #f2f2f2;vertical-align:top;}
-    .pf-table tbody tr:last-child td{border-bottom:none;}
-    .pf-group-row td{background:#f5f0e8!important;padding:8px 12px!important;border-bottom:1px solid #F59847!important;}
-    .pf-group-name{font-family:'Bebas Neue';font-size:13px;letter-spacing:2px;color:#0a0a0a;}
-    .pf-group-sub{font-size:9px;color:#A08C6E;font-family:'DM Mono';}
-    .pf-item-name{font-size:12px;font-weight:600;color:#0a0a0a;margin-bottom:3px;letter-spacing:.2px;}
-    .pf-item-code{display:inline-block;font-size:7px;color:#A08C6E;letter-spacing:1.5px;background:#f5f5f5;padding:1px 5px;border-radius:2px;margin-bottom:3px;}
-    .pf-item-desc{font-size:9.5px;color:#666;line-height:1.7;margin-top:3px;white-space:pre-line;}
-    .pf-item-qty{font-size:9.5px;color:#555;text-align:right;white-space:nowrap;}
-    .pf-item-unit-price{font-size:9px;color:#888;text-align:right;white-space:nowrap;}
-    .pf-item-total{font-size:12px;font-weight:700;color:#0a0a0a;text-align:right;white-space:nowrap;}
-    .pf-totals-wrap{background:#fafafa;border-top:1px solid #eee;padding:18px 30px;}
-    .pf-totals-inner{display:flex;justify-content:flex-end;}
-    .pf-totals-box{width:260px;}
-    .pf-total-row{display:flex;justify-content:space-between;padding:5px 0;font-size:10px;color:#777;}
-    .pf-total-row span:last-child{font-family:'DM Mono';}
-    .pf-total-main{background:#0a0a0a;padding:14px 18px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
-    .pf-total-main-lbl{font-family:'Bebas Neue';font-size:16px;letter-spacing:3px;color:#F59847;}
-    .pf-total-main-val{font-family:'DM Mono';font-size:22px;font-weight:700;color:#fff;}
-    .pf-footer{padding:20px 30px;border-top:1px solid #f0f0f0;}
-    .pf-footer-split{display:flex;gap:24px;}
-    .pf-policies{flex:1;}
-    .pf-bank{width:220px;flex-shrink:0;}
-    .pf-policies-title,.pf-bank-title{font-size:8px;letter-spacing:2px;color:#F59847;text-transform:uppercase;margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:6px;}
-    .pf-policies-title::after,.pf-bank-title::after{content:'';flex:1;height:1px;background:#F59847;opacity:.3;}
-    .pf-policies-text{font-size:9px;color:#555;line-height:2;white-space:pre-line;}
-    .pf-bank-text{font-size:9px;color:#444;line-height:2.2;}
-    .pf-signature{display:flex;justify-content:space-between;align-items:flex-end;margin-top:18px;padding-top:14px;border-top:1px dashed #eee;}
-    .pf-sig-block{text-align:center;}
-    .pf-sig-line{width:180px;border-top:2px solid #F59847;padding-top:6px;font-size:7.5px;color:#999;letter-spacing:.5px;}
-    .pf-sig-role{font-size:7px;color:#A08C6E;letter-spacing:1px;margin-top:2px;}
-    .pf-bottom-stripe{background:#0a0a0a;padding:10px 30px;display:flex;justify-content:space-between;align-items:center;}
-    .pf-bottom-tagline{font-size:8px;color:#A08C6E;letter-spacing:1.5px;font-style:italic;}
-    .pf-bottom-web{font-size:8px;color:#F59847;letter-spacing:1px;}
-  </style></head><body>${content}
-<nav class="gnav"><a href="index.html"><span class="gi">🏠</span><span class="gl">INICIO</span></a><a href="calculator.html"><span class="gi">🧮</span><span class="gl">CALC</span></a><a href="quotes.html" class="active"><span class="gi">📋</span><span class="gl">COTIZ</span></a><a href="dashboard.html"><span class="gi">📊</span><span class="gl">DASH</span></a></nav>
-</body></html>`;
+    .preview-frame{max-width:100%;margin:0;font-size:11px;overflow:hidden;background:#fff;}
+  </style></head><body>${content}</body></html>`;
 }
 
 function copyWhatsApp(){
