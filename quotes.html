@@ -442,6 +442,7 @@ body{padding-bottom:72px!important;}
   <div class="tab" onclick="switchTab('editor')">✏️ EDITOR</div>
   <div class="tab" onclick="switchTab('preview')">👁 VISTA PREVIA</div>
   <div class="tab" onclick="switchTab('clients')">👥 CLIENTES</div>
+  <div class="tab" onclick="switchTab('settings')">⚙️ CONFIG PDF</div>
   <div class="tab" onclick="switchTab('notion')">🔗 NOTION SYNC</div>
 </div>
 
@@ -861,6 +862,110 @@ Cuenta BHD: 31937430015</textarea>
 </div>
 
 <!-- ═══════════════════════════════════════════ -->
+<!-- ⚙️ CONFIG PDF — datos fijos del documento -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="view" id="tab-settings">
+  <div style="max-width:900px;margin:0 auto;padding:20px;">
+
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;">
+      <h2 style="font-family:'Bebas Neue';letter-spacing:3px;font-size:22px;">⚙️ CONFIGURACIÓN DEL PDF</h2>
+      <span style="font-size:10px;color:var(--gold);">Estos datos aparecen en TODAS las cotizaciones</span>
+      <button class="btn btn-orange" onclick="savePdfSettings()" style="margin-left:auto">💾 GUARDAR CAMBIOS</button>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:14px;">
+      <div style="font-family:'Bebas Neue';letter-spacing:2px;font-size:13px;color:var(--orange);margin-bottom:10px;">▶ DATOS DE LA EMPRESA (Header del PDF)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label class="field-lbl">📞 TELÉFONO</label>
+          <input class="inp" id="cfg-phone" placeholder="849-268-0042">
+        </div>
+        <div>
+          <label class="field-lbl">✉ EMAIL</label>
+          <input class="inp" id="cfg-email" placeholder="wallupmedia@gmail.com">
+        </div>
+        <div>
+          <label class="field-lbl">🌐 SITIO WEB</label>
+          <input class="inp" id="cfg-web" placeholder="www.wallupmedia.com">
+        </div>
+        <div>
+          <label class="field-lbl">📍 UBICACIÓN</label>
+          <input class="inp" id="cfg-loc" placeholder="Santiago, República Dominicana">
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:14px;">
+      <div style="font-family:'Bebas Neue';letter-spacing:2px;font-size:13px;color:var(--orange);margin-bottom:10px;">▶ TÉRMINOS Y CONDICIONES (default)</div>
+      <div style="font-size:9px;color:var(--gold);margin-bottom:6px;">
+        Se usa como predeterminado en cada nueva cotización. Puedes editarlo individualmente en cada quote sin alterar este default.
+      </div>
+      <textarea class="inp" id="cfg-policies" rows="8" style="font-family:'DM Mono';line-height:1.7;" placeholder="• El cliente debe abonar el 50% para reservar la fecha.&#10;• El balance se paga el día del evento.&#10;• En caso de cancelación, el abono no es reembolsable.&#10;• La entrega del material es en 30 días hábiles."></textarea>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:14px;">
+      <div style="font-family:'Bebas Neue';letter-spacing:2px;font-size:13px;color:var(--orange);margin-bottom:10px;">▶ DATOS BANCARIOS (default)</div>
+      <div style="font-size:9px;color:var(--gold);margin-bottom:6px;">
+        Aparece en la sección "DATOS DE PAGO" del PDF.
+      </div>
+      <textarea class="inp" id="cfg-bank" rows="6" style="font-family:'DM Mono';line-height:1.7;" placeholder="Banco Popular Dominicano&#10;Cuenta de Ahorros: 123-4567890-1&#10;Titular: John Davis Lopez Martínez&#10;Cédula: 031-XXXXXXX-X"></textarea>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:14px;">
+      <div style="font-family:'Bebas Neue';letter-spacing:2px;font-size:13px;color:var(--orange);margin-bottom:10px;">▶ FIRMA DEL DOCUMENTO</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label class="field-lbl">NOMBRE DE LA FIRMA</label>
+          <input class="inp" id="cfg-signature-name" placeholder="John López">
+          <div style="font-size:9px;color:var(--gold);margin-top:3px;">Aparece en estilo manuscrito</div>
+        </div>
+        <div>
+          <label class="field-lbl">CARGO / DESCRIPCIÓN</label>
+          <input class="inp" id="cfg-signature-role" placeholder="WALL UP MEDIA · Fotografía & Video">
+        </div>
+      </div>
+      <div>
+        <label class="field-lbl">VISTA PREVIA</label>
+        <div style="background:#fff;padding:18px;border-radius:4px;text-align:center;border:1px solid var(--border);">
+          <div id="cfg-sig-preview" style="font-family:'Caveat',cursive;font-size:32px;color:#0a0a0a;font-weight:700;line-height:1;">John López</div>
+          <div style="width:160px;border-top:2px solid #F59847;margin:6px auto 0;padding-top:5px;font-size:8px;color:#A08C6E;letter-spacing:1px;">FIRMA AUTORIZADA</div>
+          <div id="cfg-sig-role-preview" style="font-size:8px;color:#bbb;margin-top:2px;letter-spacing:.5px;">WALL UP MEDIA</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:14px;">
+      <div style="font-family:'Bebas Neue';letter-spacing:2px;font-size:13px;color:var(--orange);margin-bottom:10px;">▶ FOOTER DEL PDF</div>
+      <label class="field-lbl">TAGLINE / FRASE INFERIOR</label>
+      <input class="inp" id="cfg-tagline" placeholder="para volver a ese momento, cuando quieras." style="font-style:italic;">
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:14px;">
+      <div style="font-family:'Bebas Neue';letter-spacing:2px;font-size:13px;color:var(--orange);margin-bottom:10px;">▶ NUMERACIÓN AUTOMÁTICA</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label class="field-lbl">PREFIJO</label>
+          <input class="inp" id="cfg-prefix" placeholder="EST" maxlength="6">
+          <div style="font-size:9px;color:var(--gold);margin-top:3px;">Ej: EST, COT, FAC</div>
+        </div>
+        <div>
+          <label class="field-lbl">PRÓXIMO NÚMERO</label>
+          <input class="inp" id="cfg-counter" type="number" min="1" placeholder="1">
+          <div style="font-size:9px;color:var(--gold);margin-top:3px;">Se usa al crear la próxima cotización</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:8px;">
+      <button class="btn btn-orange" onclick="savePdfSettings()">💾 GUARDAR CAMBIOS</button>
+      <button class="btn btn-outline" onclick="resetPdfSettings()">↺ RESTAURAR VALORES POR DEFECTO</button>
+      <span id="settings-status" style="margin-left:auto;font-size:10px;color:var(--gold);align-self:center;"></span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
 <!-- NOTION SYNC -->
 <!-- ═══════════════════════════════════════════ -->
 <div class="view" id="tab-notion">
@@ -1195,7 +1300,7 @@ let quoteCounter = parseInt(localStorage.getItem('wu_counter')||'1');
 // ══════════════════════════════════════════════════
 function switchTab(tab){
   document.querySelectorAll('.tab').forEach((t,i)=>{
-    const tabs=['list','editor','preview','clients','notion'];
+    const tabs=['list','editor','preview','clients','settings','notion'];
     t.classList.toggle('active',tabs[i]===tab);
   });
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -1203,6 +1308,7 @@ function switchTab(tab){
   if(tab==='list') renderList();
   if(tab==='clients') renderClients();
   if(tab==='preview') updatePreview(), buildPreview();
+  if(tab==='settings') loadPdfSettings();
   if(tab==='notion') loadNotionConfig();
 }
 
@@ -1212,11 +1318,17 @@ function switchTab(tab){
 function newQuote(){
   quoteCounter++;
   WU_DB.saveCounter( quoteCounter);
+  // También actualiza el contador en pdfCfg
+  pdfCfg.counter = quoteCounter + 1;
+  localStorage.setItem('wu_pdf_cfg', JSON.stringify(pdfCfg));
+  WU_DB.set('wu_pdf_cfg', pdfCfg);
+
   const today = new Date();
   const valid = new Date(today); valid.setDate(valid.getDate()+30);
+  const prefix = (pdfCfg.prefix || 'EST').toUpperCase();
   currentQuote = {
     id: Date.now(),
-    num: 'EST'+String(quoteCounter).padStart(4,'0'),
+    num: prefix + String(quoteCounter).padStart(4,'0'),
     internalName: '',
     type: 'PRESUPUESTO',
     date: today.toISOString().split('T')[0],
@@ -1226,11 +1338,11 @@ function newQuote(){
     items: [],
     itbis: false,
     globalDisc: 0,
-    policies: document.getElementById('f-policies').value,
-    bank: document.getElementById('f-bank').value,
+    policies: pdfCfg.policies || '',
+    bank: pdfCfg.bank || '',
     internalNotes: '',
-    payments: [],        // historial de pagos [{id,amount,date,notes,notionId}]
-    received: 0,         // suma total recibido
+    payments: [],
+    received: 0,
     notionPageId: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -1859,8 +1971,11 @@ function buildPreview(){
   const clientName=document.getElementById('f-client-name').value||'Cliente';
   const clientPhone=document.getElementById('f-client-phone').value;
   const clientEmail=document.getElementById('f-client-email').value;
-  const policies=modVis.policies?document.getElementById('f-policies').value:'';
-  const bank=modVis.bank?document.getElementById('f-bank').value:'';
+  // Si el usuario no ha tipeado políticas/bank en esta cotización, usa el default global de pdfCfg
+  const quotePolicies = document.getElementById('f-policies').value;
+  const quoteBank     = document.getElementById('f-bank').value;
+  const policies = modVis.policies ? (quotePolicies || pdfCfg.policies || '') : '';
+  const bank     = modVis.bank     ? (quoteBank     || pdfCfg.bank     || '') : '';
   const t=calcTotals();
   const useGroups=(type==='PRESUPUESTO'||type==='PROPUESTA');
   const serviceType=document.getElementById('f-service-type')?.value||'';
@@ -1919,10 +2034,10 @@ function buildPreview(){
         <img src="https://wallupmedia.github.io/wallup-admin/assets/logo-horizontal.png"
              alt="Wall UP Media" style="height:52px;width:auto;margin-bottom:10px;">
         <div style="font-size:8.5px;color:#A08C6E;line-height:2.2;letter-spacing:.3px;">
-          <div>📞 &nbsp;849-268-0042</div>
-          <div>✉ &nbsp;wallupmedia@gmail.com</div>
-          <div>🌐 &nbsp;www.wallupmedia.com</div>
-          <div>📍 &nbsp;Santiago, República Dominicana</div>
+          ${pdfCfg.phone?`<div>📞 &nbsp;${esc(pdfCfg.phone)}</div>`:''}
+          ${pdfCfg.email?`<div>✉ &nbsp;${esc(pdfCfg.email)}</div>`:''}
+          ${pdfCfg.web?`<div>🌐 &nbsp;${esc(pdfCfg.web)}</div>`:''}
+          ${pdfCfg.loc?`<div>📍 &nbsp;${esc(pdfCfg.loc)}</div>`:''}
         </div>
       </div>
       <!-- Tipo + número -->
@@ -1997,9 +2112,9 @@ function buildPreview(){
       ${modVis.signature?`
       <div style="margin-top:20px;display:flex;align-items:flex-end;gap:16px;">
         <div style="text-align:center;">
-          <div style="font-family:'Caveat',cursive;font-size:30px;color:#0a0a0a;font-weight:700;line-height:1;">John López</div>
+          <div style="font-family:'Caveat',cursive;font-size:30px;color:#0a0a0a;font-weight:700;line-height:1;">${esc(pdfCfg.signatureName||'John López')}</div>
           <div style="width:160px;border-top:2px solid #F59847;margin-top:6px;padding-top:5px;font-size:7.5px;color:#A08C6E;letter-spacing:1px;text-align:center;">FIRMA AUTORIZADA</div>
-          <div style="font-size:7px;color:#bbb;margin-top:2px;letter-spacing:.5px;">WALL UP MEDIA</div>
+          <div style="font-size:7px;color:#bbb;margin-top:2px;letter-spacing:.5px;">${esc(pdfCfg.signatureRole||'WALL UP MEDIA')}</div>
         </div>
       </div>`:''}
     </div>
@@ -2030,11 +2145,11 @@ function buildPreview(){
   <!-- ══ FOOTER NEGRO ══ -->
   <div style="background:#0a0a0a;padding:12px 36px;display:flex;justify-content:space-between;align-items:center;gap:20px;">
     <div style="display:flex;gap:24px;align-items:center;">
-      <span style="font-size:8px;color:#A08C6E;">📞 849-268-0042</span>
-      <span style="font-size:8px;color:#A08C6E;">✉ wallupmedia@gmail.com</span>
-      <span style="font-size:8px;color:#A08C6E;">📍 Santiago, RD</span>
+      ${pdfCfg.phone?`<span style="font-size:8px;color:#A08C6E;">📞 ${esc(pdfCfg.phone)}</span>`:''}
+      ${pdfCfg.email?`<span style="font-size:8px;color:#A08C6E;">✉ ${esc(pdfCfg.email)}</span>`:''}
+      ${pdfCfg.loc?`<span style="font-size:8px;color:#A08C6E;">📍 ${esc(pdfCfg.loc)}</span>`:''}
     </div>
-    <div style="font-size:8px;color:#A08C6E;font-style:italic;letter-spacing:1px;">para volver a ese momento, cuando quieras.</div>
+    <div style="font-size:8px;color:#A08C6E;font-style:italic;letter-spacing:1px;">${esc(pdfCfg.tagline||'')}</div>
   </div>
 
 </div>`;
@@ -2722,6 +2837,103 @@ function downloadPDF(){
   });
 }
 
+// ══════════════════════════════════════════════════
+// CONFIGURACIÓN DEL PDF — datos fijos
+// ══════════════════════════════════════════════════
+const DEFAULT_PDF_CFG = {
+  phone: '849-268-0042',
+  email: 'wallupmedia@gmail.com',
+  web: 'www.wallupmedia.com',
+  loc: 'Santiago, República Dominicana',
+  policies: '• El cliente debe abonar el 50% para reservar la fecha del servicio.\n• El balance se paga el día del evento o antes de la entrega final.\n• En caso de cancelación por parte del cliente, el abono no es reembolsable.\n• La entrega del material editado es en 30 días hábiles luego del evento.\n• El material crudo no se entrega salvo acuerdo previo por escrito.',
+  bank: 'Banco Popular Dominicano\nCuenta de Ahorros: ___________\nTitular: John Davis Lopez Martínez\nCédula: ___________',
+  signatureName: 'John López',
+  signatureRole: 'WALL UP MEDIA · Fotografía & Video',
+  tagline: 'para volver a ese momento, cuando quieras.',
+  prefix: 'EST',
+  counter: 1,
+};
+
+let pdfCfg = JSON.parse(localStorage.getItem('wu_pdf_cfg') || 'null') || JSON.parse(JSON.stringify(DEFAULT_PDF_CFG));
+
+function loadPdfSettings(){
+  // Refrescar desde KV (puede haber cambios de otro dispositivo)
+  WU_DB.get('wu_pdf_cfg').then(remote => {
+    if(remote && typeof remote === 'object'){
+      pdfCfg = {...DEFAULT_PDF_CFG, ...remote};
+      localStorage.setItem('wu_pdf_cfg', JSON.stringify(pdfCfg));
+      fillPdfSettingsForm();
+    }
+  });
+  fillPdfSettingsForm();
+}
+
+function fillPdfSettingsForm(){
+  document.getElementById('cfg-phone').value     = pdfCfg.phone     || '';
+  document.getElementById('cfg-email').value     = pdfCfg.email     || '';
+  document.getElementById('cfg-web').value       = pdfCfg.web       || '';
+  document.getElementById('cfg-loc').value       = pdfCfg.loc       || '';
+  document.getElementById('cfg-policies').value  = pdfCfg.policies  || '';
+  document.getElementById('cfg-bank').value      = pdfCfg.bank      || '';
+  document.getElementById('cfg-signature-name').value = pdfCfg.signatureName || 'John López';
+  document.getElementById('cfg-signature-role').value = pdfCfg.signatureRole || '';
+  document.getElementById('cfg-tagline').value   = pdfCfg.tagline   || '';
+  document.getElementById('cfg-prefix').value    = pdfCfg.prefix    || 'EST';
+  document.getElementById('cfg-counter').value   = pdfCfg.counter   || 1;
+  // Update signature live preview on every input
+  ['cfg-signature-name','cfg-signature-role'].forEach(id => {
+    const el = document.getElementById(id);
+    el.oninput = updateSigPreview;
+  });
+  updateSigPreview();
+}
+
+function updateSigPreview(){
+  document.getElementById('cfg-sig-preview').textContent = document.getElementById('cfg-signature-name').value || 'John López';
+  document.getElementById('cfg-sig-role-preview').textContent = document.getElementById('cfg-signature-role').value || 'WALL UP MEDIA';
+}
+
+async function savePdfSettings(){
+  pdfCfg = {
+    phone:    document.getElementById('cfg-phone').value.trim(),
+    email:    document.getElementById('cfg-email').value.trim(),
+    web:      document.getElementById('cfg-web').value.trim(),
+    loc:      document.getElementById('cfg-loc').value.trim(),
+    policies: document.getElementById('cfg-policies').value,
+    bank:     document.getElementById('cfg-bank').value,
+    signatureName: document.getElementById('cfg-signature-name').value.trim() || 'John López',
+    signatureRole: document.getElementById('cfg-signature-role').value.trim(),
+    tagline:  document.getElementById('cfg-tagline').value.trim(),
+    prefix:   (document.getElementById('cfg-prefix').value.trim() || 'EST').toUpperCase(),
+    counter:  parseInt(document.getElementById('cfg-counter').value) || 1,
+  };
+  localStorage.setItem('wu_pdf_cfg', JSON.stringify(pdfCfg));
+  // Sync prefix and counter to global state
+  if(pdfCfg.counter > quoteCounter) quoteCounter = pdfCfg.counter;
+  WU_DB.saveCounter(quoteCounter);
+
+  const status = document.getElementById('settings-status');
+  status.textContent = '⏳ Guardando en la nube...';
+  status.style.color = 'var(--gold)';
+  const ok = await WU_DB.set('wu_pdf_cfg', pdfCfg);
+  if(ok){
+    status.textContent = '✅ Guardado y sincronizado en todos tus dispositivos';
+    status.style.color = 'var(--green)';
+  } else {
+    status.textContent = '⚠️ Guardado localmente — sincronizará al recuperar conexión';
+    status.style.color = 'var(--yellow)';
+  }
+  setTimeout(()=>{ status.textContent=''; }, 4000);
+}
+
+function resetPdfSettings(){
+  if(!confirm('¿Restaurar todos los valores por defecto? Esto NO afecta cotizaciones ya creadas.')) return;
+  pdfCfg = JSON.parse(JSON.stringify(DEFAULT_PDF_CFG));
+  fillPdfSettingsForm();
+  document.getElementById('settings-status').textContent = '↺ Valores restaurados — clic GUARDAR para aplicar';
+  document.getElementById('settings-status').style.color = 'var(--orange)';
+}
+
 function getPrintHTML(content){
   return `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>Wall UP Media</title>
@@ -3122,10 +3334,16 @@ function statusToNotion(s){return{draft:'Total pendiente',sent:'Total pendiente'
   // ─── CARGA FRESCA DESDE KV (sin bloquear el render) ───
   (async () => {
     await WU_DB.syncPending(); // sync cualquier cambio offline pendiente
-    const [freshQ, freshC] = await Promise.all([WU_DB.getQuotes(), WU_DB.getClients()]);
+    const [freshQ, freshC, freshCfg] = await Promise.all([
+      WU_DB.getQuotes(), WU_DB.getClients(), WU_DB.get('wu_pdf_cfg')
+    ]);
     let changed = false;
     if(freshQ && freshQ.length > 0){ quotes=freshQ; changed=true; }
     if(freshC && freshC.length > 0){ clients=freshC; updateClientSelect(); }
+    if(freshCfg && typeof freshCfg === 'object'){
+      pdfCfg = {...DEFAULT_PDF_CFG, ...freshCfg};
+      localStorage.setItem('wu_pdf_cfg', JSON.stringify(pdfCfg));
+    }
     if(changed){ document.getElementById('badge-total').textContent=quotes.length; renderList(); }
     const freshExpCat = await WU_DB.getExpCat();
     if(freshExpCat && freshExpCat.length > 0) localStorage.setItem('wu_expense_catalog', JSON.stringify(freshExpCat));
