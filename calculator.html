@@ -811,9 +811,13 @@ function buildCatalog(filter=''){
   list.innerHTML='';
   const groups={};
   catalog.forEach(p=>{
-    if(filter && !p.name.toLowerCase().includes(filter.toLowerCase()) && !p.cat.toLowerCase().includes(filter.toLowerCase())) return;
-    if(!groups[p.cat]) groups[p.cat]=[];
-    groups[p.cat].push(p);
+    // Support both old format (cat/price) and new format (category/unitPrice)
+    const catKey = p.category || p.cat || 'General';
+    const price   = p.unitPrice || p.price || 0;
+    const pNorm = {...p, cat: catKey, category: catKey, price, unitPrice: price};
+    if(filter && !pNorm.name.toLowerCase().includes(filter.toLowerCase()) && !catKey.toLowerCase().includes(filter.toLowerCase())) return;
+    if(!groups[catKey]) groups[catKey]=[];
+    groups[catKey].push(pNorm);
   });
   Object.entries(groups).forEach(([cat,items])=>{
     const g=document.createElement('div');
@@ -827,13 +831,13 @@ function buildCatalog(filter=''){
           <div class="cat-item" title="${p.desc||''}">
             <div>
               <div class="cat-item-name">${p.name}</div>
-              <div class="cat-item-sub">${p.code} · por ${p.unit}</div>
+              <div class="cat-item-sub">${p.code||''} · por ${p.unit||'unidad'}</div>
             </div>
             <div style="text-align:right">
-              <div class="cat-item-price">${fmt(p.price)}</div>
-              <div class="cat-item-unit">/${p.unit}</div>
+              <div class="cat-item-price">RD$${fmtNum(p.unitPrice)}</div>
+              <div class="cat-item-unit">/${p.unit||'unidad'}</div>
             </div>
-            <button class="add-btn" onclick="addToCombo(${p.id})">+</button>
+            <button class="add-btn" onclick="addToCombo('${p.id}')">+</button>
           </div>
         `).join('')}
       </div>`;
@@ -847,18 +851,20 @@ function filterCatalog(v){buildCatalog(v);}
 // COMBO ITEMS
 // ════════════════════════════════════════════
 function addToCombo(productId){
-  const p = catalog.find(x=>x.id===productId);
+  const p = catalog.find(x=>String(x.id)===String(productId));
   if(!p) return;
+  const price = p.unitPrice || p.price || 0;
+  const cat   = p.category  || p.cat  || 'General';
   comboItems.push({
     uid: Date.now()+Math.random(),
     productId: p.id,
     name: p.name,
-    code: p.code,
-    cat: p.cat,
-    unit: p.unit,
+    code: p.code || p.id,
+    cat,
+    unit: p.unit || 'unidad',
     qty: 1,
-    unitPrice: p.price,
-    cost: p.cost,
+    unitPrice: price,
+    cost: p.cost || 0,
     discount: 0,
     desc: p.desc||'',
     showDesc: true,
